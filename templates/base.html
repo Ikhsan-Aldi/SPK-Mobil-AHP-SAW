@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPK - Pemilihan Mobil MPV</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        * { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#94A3B8] bg-opacity-10 min-h-screen flex flex-col">
+
+    <nav class="bg-[#0F172A] text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-car text-xl"></i>
+                    <h1 class="text-xl font-bold">SPK Mobil MPV</h1>
+                </div>
+                
+                <div class="hidden md:flex space-x-6">
+                    <a href="{{ url_for('home') }}" class="hover:text-[#DC2626] font-medium transition">Beranda</a>
+                    <a href="{{ url_for('page_data_mobil') }}" class="hover:text-[#DC2626] font-medium transition">Data Mobil</a>
+                </div>
+
+                <div class="md:hidden">
+                    <button id="menu-btn" class="text-white focus:outline-none">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="mobile-menu" class="hidden bg-[#0F172A] text-white md:hidden shadow-lg">
+        <div class="flex flex-col px-4 py-2 space-y-2">
+            <a href="{{ url_for('home') }}" class="py-2 hover:bg-[#DC2626] px-2 rounded transition">Beranda</a>
+            <a href="{{ url_for('page_data_mobil') }}" class="py-2 hover:bg-[#DC2626] px-2 rounded transition">Data Mobil</a>
+        </div>
+    </div>
+    
+    <main class="flex-grow w-full">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="bg-[#0F172A] text-white py-4 text-center mt-auto">
+        <p class="text-sm">&copy; Muhammad Ikhsan</p>
+    </footer>
+
+    <script>
+        document.getElementById('menu-btn').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>

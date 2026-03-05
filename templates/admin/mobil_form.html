@@ -1,0 +1,94 @@
+{% extends "admin_base.html" %}
+
+{% block content %}
+<div class="w-full">
+    
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center">
+            <a href="{{ url_for('admin_mobil') }}" class="bg-white border border-gray-300 text-gray-600 hover:text-gray-900 hover:border-gray-400 w-10 h-10 flex items-center justify-center rounded-lg mr-4 transition shadow-sm">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">
+                    {% if mobil %} Edit Data Mobil {% else %} Tambah Mobil Baru {% endif %}
+                </h1>
+                <p class="text-sm text-gray-500">Isi spesifikasi lengkap mobil di bawah ini.</p>
+            </div>
+        </div>
+        
+        </div>
+
+    <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 md:p-8">
+        <form method="POST" id="formMobil">
+            
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+                
+                <div class="md:col-span-2">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Kode</label>
+                    <input type="text" name="kode" value="{{ mobil.kode if mobil else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] bg-gray-50 focus:bg-white transition" required placeholder="A1">
+                </div>
+
+                <div class="md:col-span-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Nama & Tipe Mobil</label>
+                    <input type="text" name="nama_mobil" value="{{ mobil.nama_mobil if mobil else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition" required placeholder="Contoh: Toyota Avanza 1.5 G TSS">
+                </div>
+
+                <div class="md:col-span-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Harga OTR (Rp)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-bold">Rp</span>
+                        <input type="number" name="harga" value="{{ mobil.harga if mobil else '' }}" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] font-semibold text-gray-800 transition" required placeholder="300000000">
+                    </div>
+                </div>
+
+                <div class="md:col-span-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                        <i class="fas fa-chair text-gray-400 mr-1"></i> Kapasitas Kursi
+                    </label>
+                    <input type="number" name="kursi" value="{{ mobil.kursi if mobil else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition" required>
+                </div>
+
+                <div class="md:col-span-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                        <i class="fas fa-gas-pump text-gray-400 mr-1"></i> Konsumsi BBM (km/L)
+                    </label>
+                    <input type="number" step="0.1" name="bbm" value="{{ mobil.bbm if mobil else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition" required>
+                </div>
+
+                <div class="md:col-span-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                        <i class="fas fa-bolt text-gray-400 mr-1"></i> Tenaga Mesin (HP/PS)
+                    </label>
+                    <input type="number" name="tenaga" value="{{ mobil.tenaga if mobil else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition" required>
+                </div>
+
+                <div class="md:col-span-12">
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-200">
+                        <label class="block text-blue-900 text-sm font-bold mb-2">
+                            <i class="fas fa-shield-alt mr-1"></i> Fitur Keselamatan (Standar ASEAN NCAP)
+                        </label>
+                        <select name="fitur_safety" class="w-full px-4 py-3 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700 cursor-pointer" required>
+                            <option value="" disabled selected>-- Pilih Tingkat Keamanan --</option>
+                            <option value="1" {% if mobil and mobil.fitur_safety == 1 %}selected{% endif %}>1 - Basic Passive (Seatbelt & Rangka Saja)</option>
+                            <option value="2" {% if mobil and mobil.fitur_safety == 2 %}selected{% endif %}>2 - Standard Safety (Dual Airbags + Rem ABS)</option>
+                            <option value="3" {% if mobil and mobil.fitur_safety == 3 %}selected{% endif %}>3 - Active Safety (ABS, EBD, BA + Hill Start Assist)</option>
+                            <option value="4" {% if mobil and mobil.fitur_safety == 4 %}selected{% endif %}>4 - High Active Safety (VSC + 6 Airbags)</option>
+                            <option value="5" {% if mobil and mobil.fitur_safety == 5 %}selected{% endif %}>5 - Advanced Safety (ADAS / TSS / Honda Sensing)</option>
+                        </select>
+                        <p class="text-xs text-blue-600 mt-2 ml-1">
+                            *Pilih poin 1-5 sesuai kelengkapan fitur keselamatan mobil.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="pt-4 border-t border-gray-100">
+                <button type="submit" class="w-full bg-[#0F172A] hover:bg-[#DC2626] text-white font-bold py-4 rounded-xl transition duration-300 shadow-lg text-lg flex justify-center items-center group">
+                    <i class="fas fa-save mr-2 group-hover:scale-110 transition-transform"></i> SIMPAN DATA MOBIL
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
