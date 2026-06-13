@@ -911,5 +911,9 @@ def admin_mobil_hapus(id):
     return redirect(url_for('admin_mobil'))
 
 
+# if __name__ == '__main__':
+#     app.run(debug=True)
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Mengambil port otomatis dari Railway, jika tidak ada (di lokal) pakai port 5000
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
