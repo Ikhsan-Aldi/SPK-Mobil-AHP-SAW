@@ -18,7 +18,7 @@
             <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-2">
                     <i class="fas fa-car text-xl"></i>
-                    <h1 class="text-xl font-bold">SPK Mobil MPV</h1>
+                    <h1 class="text-xl font-bold">SPK Mobil</h1>
                 </div>
                 
                 <div class="hidden md:flex space-x-6">
@@ -27,18 +27,24 @@
                 </div>
 
                 <div class="md:hidden">
-                    <button id="menu-btn" class="text-white focus:outline-none">
-                        <i class="fas fa-bars text-xl"></i>
+                    <button id="menu-btn" class="text-white focus:outline-none p-1">
+                        <i id="menu-icon" class="fas fa-bars text-xl"></i>
                     </button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <div id="mobile-menu" class="hidden bg-[#0F172A] text-white md:hidden shadow-lg">
-        <div class="flex flex-col px-4 py-2 space-y-2">
-            <a href="{{ url_for('home') }}" class="py-2 hover:bg-[#DC2626] px-2 rounded transition">Beranda</a>
-            <a href="{{ url_for('page_data_mobil') }}" class="py-2 hover:bg-[#DC2626] px-2 rounded transition">Data Mobil</a>
+    <div id="mobile-menu" class="hidden bg-[#0F172A] text-white md:hidden shadow-lg border-t border-gray-800">
+        <div class="flex flex-col px-4 py-3 space-y-2.5">
+            <a href="{{ url_for('home') }}" class="py-2.5 hover:bg-[#DC2626] px-3 rounded transition text-base font-medium flex items-center space-x-2">
+                <i class="fas fa-home text-sm w-5"></i>
+                <span>Beranda</span>
+            </a>
+            <a href="{{ url_for('page_data_mobil') }}" class="py-2.5 hover:bg-[#DC2626] px-3 rounded transition text-base font-medium flex items-center space-x-2">
+                <i class="fas fa-car text-sm w-5"></i>
+                <span>Data Mobil</span>
+            </a>
         </div>
     </div>
     
@@ -52,9 +58,33 @@
     </footer>
 
     <script>
-        document.getElementById('menu-btn').addEventListener('click', function() {
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuBtn = document.getElementById('menu-btn');
             const mobileMenu = document.getElementById('mobile-menu');
-            mobileMenu.classList.toggle('hidden');
+            const menuIcon = document.getElementById('menu-icon');
+
+            menuBtn.addEventListener('click', function() {
+                const isHidden = mobileMenu.classList.contains('hidden');
+                
+                if (isHidden) {
+                    mobileMenu.classList.remove('hidden');
+                    menuIcon.classList.remove('fa-bars');
+                    menuIcon.classList.add('fa-times'); // Ubah jadi icon silang (X) saat terbuka
+                } else {
+                    mobileMenu.classList.add('hidden');
+                    menuIcon.classList.remove('fa-times');
+                    menuIcon.classList.add('fa-bars'); // Kembalikan ke icon hamburger
+                }
+            });
+
+            // Antisipasi jika user iseng resize layar dari HP ke desktop, menu mobile langsung nutup otomatis
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 768) {
+                    mobileMenu.classList.add('hidden');
+                    menuIcon.classList.remove('fa-times');
+                    menuIcon.classList.add('fa-bars');
+                }
+            });
         });
     </script>
 </body>

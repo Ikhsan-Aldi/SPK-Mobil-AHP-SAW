@@ -8,13 +8,14 @@
             <h2 class="text-3xl font-bold text-[#0F172A] mb-2 border-l-4 border-[#DC2626] pl-4">
                 Data Alternatif Mobil
             </h2>
+            <p class="text-sm text-gray-500 pl-4">Daftar spesifikasi mobil sebagai acuan perhitungan SPK.</p>
         </div>
         
         <div class="relative w-full md:w-72">
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <i class="fas fa-search text-gray-400"></i>
             </span>
-            <input type="text" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] focus:border-transparent shadow-sm" placeholder="Cari merk atau tipe...">
+            <input type="text" id="searchInput" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] focus:border-transparent shadow-sm" placeholder="Cari merk, tipe, atau varian...">
         </div>
     </div>
 
@@ -23,103 +24,228 @@
         <div class="h-2 bg-gradient-to-r from-[#0F172A] to-[#1e293b]"></div>
 
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
+            <table class="min-w-full divide-y divide-gray-200" id="carTable">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            Kode
+                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-14">
+                            No
                         </th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            <i class="fas fa-car mr-1 text-[#DC2626]"></i> Model Mobil
+                            <i class="fas fa-car mr-1 text-[#DC2626]"></i> Nama Mobil & Spesifikasi
                         </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-44">
                             <i class="fas fa-tag mr-1 text-[#DC2626]"></i> Harga (OTR)
                         </th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            <i class="fas fa-chair mr-1 text-[#DC2626]"></i> Kursi
+                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-36">
+                            <i class="fas fa-tachometer-alt mr-1 text-[#DC2626]"></i> Mesin
                         </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            <i class="fas fa-gas-pump mr-1 text-[#DC2626]"></i> Efisiensi
+                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-32">
+                            <i class="fas fa-chair mr-1 text-[#DC2626]"></i> Penumpang
                         </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            <i class="fas fa-bolt mr-1 text-[#DC2626]"></i> Performa
+                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-36">
+                            <i class="fas fa-fill-drip mr-1 text-[#DC2626]"></i> Kapasitas Tangki
                         </th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-100">
+                <tbody class="bg-white divide-y divide-gray-100" id="carTableBody">
                     {% for m in mobil %}
-                    <tr class="hover:bg-red-50/50 transition duration-200 group">
-                        
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm border border-gray-200 group-hover:bg-[#0F172A] group-hover:text-white transition">
-                                {{ m.kode }}
-                            </span>
+                    <tr class="car-row hover:bg-red-50/50 transition duration-200 group" data-search="{{ m.merk|lower }} {{ m.model|lower }} {{ m.varian|lower }} {{ m.transmisi|lower }} {{ m.bahan_bakar|lower }}">
+                        <td class="px-4 py-4 whitespace-nowrap text-center align-middle font-semibold text-gray-500 text-sm">
+                            {{ loop.index }}
+                        </td>
+                        <td class="px-6 py-4 align-middle">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0 flex items-center justify-center shadow-sm">
+                                    {% if m.gambar %}
+                                        <img src="{{ url_for('static', filename='uploads/' ~ m.gambar) }}" alt="{{ m.model }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <i class="fas fa-car text-gray-400 text-lg"></i>
+                                    {% endif %}
+                                </div>
+                                
+                                <div>
+                                    <div class="font-bold text-[#0F172A] text-base">
+                                        {{ m.merk }} {{ m.model }} <span class="text-xs font-normal text-gray-500">({{ m.varian }})</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-1 flex flex-wrap gap-1.5">
+                                        <span class="bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                                            <i class="fas fa-cog text-gray-400 mr-1 text-[10px]"></i> {{ m.transmisi }}
+                                        </span>
+                                        <span class="bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                                            <i class="fas fa-gas-pump text-gray-400 mr-1 text-[10px]"></i> {{ m.bahan_bakar }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </td>
                         
-                        <td class="px-6 py-4">
-                            <div class="font-semibold text-[#0F172A] text-base">{{ m.nama_mobil }}</div>
-                            <div class="text-xs text-gray-400 mt-1">MPV Family Car</div>
-                        </td>
-                        
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-6 py-4 whitespace-nowrap align-middle">
                             <div class="font-bold text-emerald-600 text-base">
                                 Rp {{ "{:,.0f}".format(m.harga).replace(',', '.') }}
                             </div>
                         </td>
                         
-                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <td class="px-6 py-4 whitespace-nowrap text-center align-middle">
+                            <div class="font-semibold text-gray-700 text-sm">{{ m.kapasitas_mesin }} CC</div>
+                        </td>
+                        
+                        <td class="px-6 py-4 whitespace-nowrap text-center align-middle">
                             <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                                {{ m.kursi }} Seat
+                                {{ m.kapasitas_penumpang }} Seat
                             </span>
                         </td>
                         
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center mr-3 text-orange-500">
-                                    <i class="fas fa-gas-pump text-xs"></i>
-                                </div>
-                                <div>
-                                    <div class="font-bold text-gray-700">{{ m.bbm }}</div>
-                                    <div class="text-[10px] text-gray-400 uppercase">km/liter</div>
-                                </div>
-                            </div>
+                        <td class="px-6 py-4 whitespace-nowrap text-center align-middle">
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-50 text-purple-700 border border-purple-100">
+                                {{ m.kapasitas_tangki }} Liter
+                            </span>
                         </td>
-                        
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center mr-3 text-purple-500">
-                                    <i class="fas fa-tachometer-alt text-xs"></i>
-                                </div>
-                                <div>
-                                    <div class="font-bold text-gray-700">{{ m.tenaga }}</div>
-                                    <div class="text-[10px] text-gray-400 uppercase">Horsepower</div>
-                                </div>
-                            </div>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-10 text-center text-gray-500">
+                            <i class="fas fa-folder-open text-3xl mb-2 block text-gray-300"></i>
+                            Tidak ada data mobil yang tersedia.
                         </td>
                     </tr>
                     {% endfor %}
+                    
+                    <tr id="noResultsRow" class="hidden">
+                        <td colspan="6" class="px-6 py-10 text-center text-gray-500">
+                            <i class="fas fa-search text-3xl mb-2 block text-gray-300"></i>
+                            Data mobil yang Anda cari tidak ditemukan.
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
         
         <div class="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between">
             <div class="text-sm text-gray-500">
-                Menampilkan <span class="font-bold text-[#0F172A]">{{ mobil|length }}</span> data mobil
+                Menampilkan <span id="displayedCount" class="font-bold text-[#0F172A]">0</span> dari <span id="totalCount" class="font-bold text-gray-700">0</span> data mobil
             </div>
-            <div class="flex space-x-1">
-                <button class="px-3 py-1 rounded border border-gray-300 bg-white text-gray-500 text-sm disabled:opacity-50" disabled>Previous</button>
-                <button class="px-3 py-1 rounded border border-gray-300 bg-[#DC2626] text-white text-sm">1</button>
-                <button class="px-3 py-1 rounded border border-gray-300 bg-white text-gray-500 text-sm">Next</button>
-            </div>
+            <div id="paginationContainer" class="flex space-x-1">
+                </div>
         </div>
     </div>
-    
-    <!-- <div class="mt-6 flex items-center p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 border border-blue-200" role="alert">
-        <i class="fas fa-info-circle mr-2 text-lg"></i>
-        <div>
-            <span class="font-medium">Informasi:</span> Data di atas adalah data *dummy* untuk keperluan pengujian sistem. Data *real-time* akan diupdate pada tahap implementasi database.
-        </div>
-    </div> -->
-
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const carRows = Array.from(document.querySelectorAll('.car-row'));
+        const noResultsRow = document.getElementById('noResultsRow');
+        const displayedCount = document.getElementById('displayedCount');
+        const totalCount = document.getElementById('totalCount');
+        const paginationContainer = document.getElementById('paginationContainer');
+
+        let currentPage = 1;
+        const rowsPerPage = 10; // Menampilkan 10 data per halaman (total 3 halaman jika data ada 30)
+
+        function updateTable() {
+            const filterValue = searchInput.value.toLowerCase().trim();
+            
+            // 1. Filter baris data yang cocok dengan input search
+            const filteredRows = carRows.filter(row => {
+                const searchData = row.getAttribute('data-search');
+                return searchData.includes(filterValue);
+            });
+
+            const totalFiltered = filteredRows.length;
+            const totalPages = Math.ceil(totalFiltered / rowsPerPage) || 1;
+
+            // Atur kembali jika halaman aktif melampaui jumlah halaman filter baru
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
+            }
+
+            // 2. Sembunyikan semua baris data terlebih dahulu
+            carRows.forEach(row => row.classList.add('hidden'));
+
+            // 3. Tentukan indeks data yang harus tampil di halaman aktif
+            const startIdx = (currentPage - 1) * rowsPerPage;
+            const endIdx = startIdx + rowsPerPage;
+            const pageRows = filteredRows.slice(startIdx, endIdx);
+
+            // 4. Tampilkan data pada halaman aktif
+            pageRows.forEach(row => row.classList.remove('hidden'));
+
+            // 5. Kondisi visual jika hasil pencarian kosong
+            if (totalFiltered === 0) {
+                noResultsRow.classList.remove('hidden');
+            } else {
+                noResultsRow.classList.add('hidden');
+            }
+
+            // 6. Perbarui info teks pada footer table
+            displayedCount.textContent = pageRows.length;
+            totalCount.textContent = totalFiltered;
+
+            // 7. Render ulang tombol paginasi
+            renderPagination(totalPages);
+        }
+
+        function renderPagination(totalPages) {
+            paginationContainer.innerHTML = '';
+
+            // Jika total item 0, tidak perlu merender tombol navigasi
+            if (carRows.length === 0) return;
+
+            // Tombol Previous
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = 'Previous';
+            if (currentPage === 1) {
+                prevBtn.className = 'px-3 py-1 rounded border border-gray-300 bg-gray-100 text-gray-400 text-sm cursor-not-allowed';
+                prevBtn.disabled = true;
+            } else {
+                prevBtn.className = 'px-3 py-1 rounded border border-gray-300 bg-white text-gray-600 text-sm hover:bg-gray-50 transition';
+                prevBtn.addEventListener('click', () => {
+                    currentPage--;
+                    updateTable();
+                });
+            }
+            paginationContainer.appendChild(prevBtn);
+
+            // Angka Halaman
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.textContent = i;
+                if (i === currentPage) {
+                    pageBtn.className = 'px-3 py-1 rounded border border-[#DC2626] bg-[#DC2626] text-white text-sm font-semibold shadow-sm';
+                } else {
+                    pageBtn.className = 'px-3 py-1 rounded border border-gray-300 bg-white text-gray-600 text-sm hover:bg-gray-50 transition';
+                    pageBtn.addEventListener('click', () => {
+                        currentPage = i;
+                        updateTable();
+                    });
+                }
+                paginationContainer.appendChild(pageBtn);
+            }
+
+            // Tombol Next
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Next';
+            if (currentPage === totalPages) {
+                nextBtn.className = 'px-3 py-1 rounded border border-gray-300 bg-gray-100 text-gray-400 text-sm cursor-not-allowed';
+                nextBtn.disabled = true;
+            } else {
+                nextBtn.className = 'px-3 py-1 rounded border border-gray-300 bg-white text-gray-600 text-sm hover:bg-gray-50 transition';
+                nextBtn.addEventListener('click', () => {
+                    currentPage++;
+                    updateTable();
+                });
+            }
+            paginationContainer.appendChild(nextBtn);
+        }
+
+        // Event listener saat pengguna mengetik kata kunci pencarian
+        searchInput.addEventListener('input', function() {
+            currentPage = 1; // Selalu reset ke halaman 1 saat pencarian berubah
+            updateTable();
+        });
+
+        // Inisialisasi awal pemanggilan fungsi tabel
+        updateTable();
+    });
+</script>
 {% endblock %}

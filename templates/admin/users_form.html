@@ -1,0 +1,209 @@
+{% extends "admin_base.html" %}
+
+{% block content %}
+<div class="w-full">
+    
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center">
+            <a href="{{ url_for('admin_users') }}" class="bg-white border border-gray-300 text-gray-600 hover:text-gray-900 hover:border-gray-400 w-10 h-10 flex items-center justify-center rounded-lg mr-4 transition shadow-sm">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">
+                    {% if user %} Edit Data User {% else %} Tambah User Baru {% endif %}
+                </h1>
+                <p class="text-sm text-gray-500">
+                    {% if user %} Ubah informasi user di bawah ini. {% else %} Isi data lengkap user baru. {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification (untuk flash message) -->
+    <div class="relative w-full mb-4">
+        <div class="absolute top-0 right-0 z-50 flex flex-col gap-3 w-80 max-w-full pointer-events-none" id="toastContainer">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="toast-item pointer-events-auto cursor-pointer p-4 rounded-xl shadow-xl border flex items-center justify-between transition-all duration-300 transform translate-y-0 opacity-100 {% if category == 'success' %}bg-green-50 text-green-800 border-green-200{% else %}bg-red-50 text-red-800 border-red-200{% endif %}" onclick="dismissToast(this)">
+                      <div class="flex items-center space-x-3">
+                          {% if category == 'success' %}
+                          <div class="bg-green-100 p-1.5 rounded-lg flex items-center justify-center">
+                              <i class="fas fa-check-circle text-green-600 text-sm"></i>
+                          </div>
+                          {% else %}
+                          <div class="bg-red-100 p-1.5 rounded-lg flex items-center justify-center">
+                              <i class="fas fa-exclamation-circle text-red-600 text-sm"></i>
+                          </div>
+                          {% endif %}
+                          <span class="text-sm font-medium">{{ message }}</span>
+                      </div>
+                      <i class="fas fa-times text-gray-400 hover:text-gray-600 text-xs ml-4"></i>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 md:p-8">
+        <form method="POST" id="formUser" action="{% if user %}{{ url_for('admin_users_edit', id=user.id_user) }}{% else %}{{ url_for('admin_users_tambah') }}{% endif %}">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Username -->
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Username <span class="text-red-500">*</span></label>
+                    <input type="text" name="username" id="username" value="{{ user.username if user else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition" required maxlength="50" placeholder="contoh: admin_spk">
+                    <p id="usernameError" class="text-red-500 text-xs mt-1 hidden">Username minimal 3 karakter.</p>
+                </div>
+
+                <!-- Nama Lengkap -->
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Nama Lengkap <span class="text-red-500">*</span></label>
+                    <input type="text" name="nama_lengkap" value="{{ user.nama_lengkap if user else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition" required maxlength="100" placeholder="Nama lengkap pengguna">
+                </div>
+
+                <!-- Password (tambah: wajib, edit: opsional) -->
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                        Password {% if not user %}<span class="text-red-500">*</span>{% else %}<span class="text-gray-400 text-xs font-normal">(Kosongkan jika tidak ingin mengubah)</span>{% endif %}
+                    </label>
+                    <input type="password" name="password" id="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition" {% if not user %}required{% endif %} minlength="8" placeholder="Minimal 8 karakter">
+                    <p id="passwordLengthError" class="text-red-500 text-xs mt-1 hidden">Password minimal 8 karakter.</p>
+                </div>
+
+                <!-- Konfirmasi Password -->
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                        Konfirmasi Password {% if not user %}<span class="text-red-500">*</span>{% endif %}
+                    </label>
+                    <input type="password" name="konfirmasi_password" id="konfirmasi_password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition" {% if not user %}required{% endif %} placeholder="Ulangi password">
+                    <p id="passwordMatchError" class="text-red-500 text-xs mt-1 hidden">Password dan konfirmasi tidak cocok.</p>
+                </div>
+
+                <!-- Role -->
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Role <span class="text-red-500">*</span></label>
+                    <select name="role" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] bg-white text-gray-700 cursor-pointer" required>
+                        <option value="" disabled {% if not user %}selected{% endif %}>-- Pilih Role --</option>
+                        <option value="admin" {% if user and user.role == 'admin' %}selected{% endif %}>Admin</option>
+                        <option value="superadmin" {% if user and user.role == 'superadmin' %}selected{% endif %}>Super Admin</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Tombol Submit -->
+            <div class="pt-6 mt-4 border-t border-gray-100">
+                <button type="submit" id="submitBtn" class="w-full bg-[#0F172A] hover:bg-[#DC2626] text-white font-bold py-4 rounded-xl transition duration-300 shadow-lg text-lg flex justify-center items-center group">
+                    <i class="fas fa-save mr-2 group-hover:scale-110 transition-transform"></i> 
+                    {% if user %} SIMPAN PERUBAHAN {% else %} TAMBAH USER {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Fungsi toast auto-hide & click dismiss
+    function dismissToast(element) {
+        element.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => { element.remove(); }, 300);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto dismiss toast setelah 5 detik
+        const toasts = document.querySelectorAll('.toast-item');
+        toasts.forEach(toast => {
+            setTimeout(() => {
+                if (toast) dismissToast(toast);
+            }, 5000);
+        });
+
+        // --- PREVENT DOUBLE SUBMIT + VALIDASI PASSWORD 8 KARAKTER ---
+        const form = document.getElementById('formUser');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const konfirmasiInput = document.getElementById('konfirmasi_password');
+        const usernameError = document.getElementById('usernameError');
+        const passwordLengthError = document.getElementById('passwordLengthError');
+        const passwordMatchError = document.getElementById('passwordMatchError');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        let isSubmitting = false; // flag untuk mencegah double klik
+
+        // Event listener sebelum submit
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            
+            // Reset pesan error
+            usernameError.classList.add('hidden');
+            passwordLengthError.classList.add('hidden');
+            passwordMatchError.classList.add('hidden');
+            
+            // 1. Validasi username minimal 3 karakter
+            const username = usernameInput.value.trim();
+            if (username.length < 3) {
+                usernameError.classList.remove('hidden');
+                isValid = false;
+            }
+            
+            // 2. Validasi password (minimal 8 karakter)
+            const isEditMode = {{ 'true' if user else 'false' }};
+            const password = passwordInput.value;
+            const konfirmasi = konfirmasiInput.value;
+            
+            if (!isEditMode) {
+                // Mode Tambah: password wajib minimal 8 karakter
+                if (password.length < 8) {
+                    passwordLengthError.classList.remove('hidden');
+                    isValid = false;
+                }
+                if (password !== konfirmasi) {
+                    passwordMatchError.classList.remove('hidden');
+                    isValid = false;
+                }
+            } else {
+                // Mode Edit: jika password diisi, harus minimal 8 dan cocok
+                if (password !== "") {
+                    if (password.length < 8) {
+                        passwordLengthError.classList.remove('hidden');
+                        isValid = false;
+                    }
+                    if (password !== konfirmasi) {
+                        passwordMatchError.classList.remove('hidden');
+                        isValid = false;
+                    }
+                } else {
+                    // Jika password kosong, abaikan validasi, tapi pastikan konfirmasi juga kosong
+                    if (konfirmasi !== "") {
+                        passwordMatchError.innerText = "Konfirmasi password harus kosong jika password tidak diubah.";
+                        passwordMatchError.classList.remove('hidden');
+                        isValid = false;
+                    }
+                }
+            }
+            
+            // Jika validasi gagal, batalkan submit
+            if (!isValid) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // --- CEK DOUBLE SUBMIT: jika sudah dalam proses, batalkan ---
+            if (isSubmitting) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Tandai sedang submit, nonaktifkan tombol, ubah teks
+            isSubmitting = true;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> MENYIMPAN...';
+            submitBtn.classList.remove('hover:bg-[#DC2626]');
+            submitBtn.style.opacity = '0.7';
+            
+            // Form akan dilanjutkan submit
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% set select_val = 'Semua' %}
+{% if saved_filter %}
+    {% if saved_filter.harga_min == 0 and saved_filter.harga_max == 200000000 %}
+        {% set select_val = 'max_200' %}
+    {% elif saved_filter.harga_min == 0 and saved_filter.harga_max == 300000000 %}
+        {% set select_val = 'max_300' %}
+    {% elif saved_filter.harga_min == 0 and saved_filter.harga_max == 400000000 %}
+        {% set select_val = 'max_400' %}
+    {% elif saved_filter.harga_min == 0 and saved_filter.harga_max == 500000000 %}
+        {% set select_val = 'max_500' %}
+    {% elif saved_filter.harga_min == 500000000 and (saved_filter.harga_max == 9999999999 or not saved_filter.harga_max) %}
+        {% set select_val = 'above_500' %}
+    {% elif saved_filter.harga_min == 0 and (saved_filter.harga_max == 9999999999 or not saved_filter.harga_max) %}
+        {% set select_val = 'Semua' %}
+    {% else %}
+        {% set select_val = 'custom' %}
+    {% endif %}
+{% endif %}
+
+<div class="min-h-[calc(100vh-64px)] bg-[#0F172A] py-6 sm:py-12 px-4 sm:px-6 lg:px-8 font-poppins">
+    <div class="max-w-3xl w-full mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
+        
+        <div class="bg-gradient-to-r from-[#0F172A] to-[#1E293B] px-4 py-5 sm:px-8 sm:py-6 text-white text-center relative">
+            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-[#DC2626] rounded-b-full"></div>
+            <h2 class="text-xl sm:text-2xl font-bold tracking-tight">Langkah 1: Filter Kriteria Mutlak</h2>
+            <p class="text-gray-400 text-xs sm:text-sm mt-1">Saring mobil awal berdasarkan preferensi wajib Anda sebelum masuk ke pembobotan AHP</p>
+        </div>
+
+        <form action="{{ url_for('input_filter') }}" method="POST" class="p-4 sm:p-8 space-y-5 sm:space-y-6">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+                <div>
+                    <label for="merk" class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-tags text-gray-400 mr-1"></i> Merk Mobil
+                    </label>
+                    <select id="merk" name="merk" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#DC2626] focus:border-transparent transition text-sm sm:text-base">
+                        <option value="Semua">-- Semua Merk (Tanpa Batasan) --</option>
+                        <option value="Chery" {% if saved_filter.merk == 'Chery' %}selected{% endif %}>Chery</option>
+                        <option value="Daihatsu" {% if saved_filter.merk == 'Daihatsu' %}selected{% endif %}>Daihatsu</option>
+                        <option value="Honda" {% if saved_filter.merk == 'Honda' %}selected{% endif %}>Honda</option>
+                        <option value="Hyundai" {% if saved_filter.merk == 'Hyundai' %}selected{% endif %}>Hyundai</option>
+                        <option value="Isuzu" {% if saved_filter.merk == 'Isuzu' %}selected{% endif %}>Isuzu</option>
+                        <option value="Kia" {% if saved_filter.merk == 'Kia' %}selected{% endif %}>Kia</option>
+                        <option value="Mazda" {% if saved_filter.merk == 'Mazda' %}selected{% endif %}>Mazda</option>
+                        <option value="Mitsubishi" {% if saved_filter.merk == 'Mitsubishi' %}selected{% endif %}>Mitsubishi</option>
+                        <option value="Nissan" {% if saved_filter.merk == 'Nissan' %}selected{% endif %}>Nissan</option>
+                        <option value="Suzuki" {% if saved_filter.merk == 'Suzuki' %}selected{% endif %}>Suzuki</option>
+                        <option value="Toyota" {% if saved_filter.merk == 'Toyota' %}selected{% endif %}>Toyota</option>
+                        <option value="Volkswagen" {% if saved_filter.merk == 'Volkswagen' %}selected{% endif %}>Volkswagen</option>
+                        <option value="Wuling" {% if saved_filter.merk == 'Wuling' %}selected{% endif %}>Wuling</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="transmisi" class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-cog text-gray-400 mr-1"></i> Jenis Transmisi
+                    </label>
+                    <select id="transmisi" name="transmisi" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#DC2626] focus:border-transparent transition text-sm sm:text-base">
+                        <option value="Semua">-- Semua Transmisi --</option>
+                        <option value="Manual" {% if saved_filter.transmisi == 'Manual' %}selected{% endif %}>Manual (MT)</option>
+                        <option value="Otomatis" {% if saved_filter.transmisi == 'Otomatis' %}selected{% endif %}>Otomatis (AT, CVT, DCT)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="bahan_bakar" class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-gas-pump text-gray-400 mr-1"></i> Jenis Bahan Bakar
+                    </label>
+                    <select id="bahan_bakar" name="bahan_bakar" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#DC2626] focus:border-transparent transition text-sm sm:text-base">
+                        <option value="Semua">-- Semua Bahan Bakar --</option>
+                        <option value="Bensin" {% if saved_filter.bahan_bakar == 'Bensin' %}selected{% endif %}>Bensin</option>
+                        <option value="Diesel" {% if saved_filter.bahan_bakar == 'Diesel' %}selected{% endif %}>Diesel</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="pilihan_harga" class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-money-bill-wave text-gray-400 mr-1"></i> Batas Maksimal Budget
+                    </label>
+                    <select id="pilihan_harga" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#DC2626] focus:border-transparent transition text-sm sm:text-base" onchange="syncPriceSelection(this.value)">
+                        <option value="Semua" {% if select_val == 'Semua' %}selected{% endif %}>-- Semua Harga (Tanpa Batasan) --</option>
+                        <option value="max_200" {% if select_val == 'max_200' %}selected{% endif %}>Maksimal Rp 200 Juta</option>
+                        <option value="max_300" {% if select_val == 'max_300' %}selected{% endif %}>Maksimal Rp 300 Juta</option>
+                        <option value="max_400" {% if select_val == 'max_400' %}selected{% endif %}>Maksimal Rp 400 Juta</option>
+                        <option value="max_500" {% if select_val == 'max_500' %}selected{% endif %}>Maksimal Rp 500 Juta</option>
+                        <option value="above_500" {% if select_val == 'above_500' %}selected{% endif %}>Di atas Rp 500 Juta</option>
+                        <option value="custom" {% if select_val == 'custom' %}selected{% endif %}>Kustom / Isi Manual Rentang Harga</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="custom_price_container" class="bg-gray-50 p-4 sm:p-6 rounded-xl border border-gray-100 space-y-4 transition-all duration-300 {% if select_val != 'custom' %}hidden{% endif %}">
+                <span class="text-xs font-bold uppercase tracking-wider text-gray-400 block">Jangkauan Harga Manual (Rupiah)</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="harga_min" class="text-xs text-gray-500 block mb-1">Harga Minimum</label>
+                        <input type="number" id="harga_min" name="harga_min" value="{{ saved_filter.harga_min if saved_filter else 0 }}" placeholder="Contoh: 150000000" class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#DC2626] focus:border-transparent transition">
+                    </div>
+                    <div>
+                        <label for="harga_max" class="text-xs text-gray-500 block mb-1">Harga Maximum</label>
+                        <input type="number" id="harga_max" name="harga_max" value="{{ saved_filter.harga_max if saved_filter else 9999999999 }}" placeholder="Contoh: 350000000" class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#DC2626] focus:border-transparent transition">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col-reverse sm:flex-row items-center justify-between pt-4 gap-4 border-t border-gray-100">
+                <a href="{{ url_for('home') }}" class="text-sm font-medium text-gray-500 hover:text-gray-700 transition py-2 text-center sm:text-left w-full sm:w-auto">
+                    <i class="fas fa-arrow-left mr-1"></i> Kembali ke Beranda
+                </a>
+                <button type="submit" class="w-full sm:w-auto justify-center px-6 sm:px-8 py-3 bg-[#DC2626] hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-950/20 transform hover:-translate-y-0.5 transition flex items-center text-sm sm:text-base">
+                    Lanjut ke Kuesioner AHP <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+function syncPriceSelection(val) {
+    const minInput = document.getElementById('harga_min');
+    const maxInput = document.getElementById('harga_max');
+    const customContainer = document.getElementById('custom_price_container');
+
+    if (val === 'custom') {
+        customContainer.classList.remove('hidden');
+    } else {
+        customContainer.classList.add('hidden');
+        
+        if (val === 'Semua') {
+            minInput.value = 0;
+            maxInput.value = 9999999999;
+        } else if (val === 'max_200') {
+            minInput.value = 0;
+            maxInput.value = 200000000;
+        } else if (val === 'max_300') {
+            minInput.value = 0;
+            maxInput.value = 300000000;
+        } else if (val === 'max_400') {
+            minInput.value = 0;
+            maxInput.value = 400000000;
+        } else if (val === 'max_500') {
+            minInput.value = 0;
+            maxInput.value = 500000000;
+        } else if (val === 'above_500') {
+            minInput.value = 500000000;
+            maxInput.value = 9999999999;
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -1,57 +1,178 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8 max-w-4xl font-poppins">
+<div class="w-full px-4 lg:px-8 xl:px-12 py-4 sm:py-8 mx-auto font-poppins">
     
-    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
-        <div class="bg-[#0F172A] p-6 text-white text-center">
-            <h2 class="text-2xl font-bold mb-2">Preferensi Kriteria Kendaraan</h2>
-            <p class="text-sm text-gray-300">Tentukan seberapa penting suatu kriteria dibandingkan kriteria lainnya bagi Anda.</p>
+    <div class="text-center mb-6 sm:mb-8">
+        <h1 class="text-2xl sm:text-3xl font-bold text-[#0F172A] mb-2">Kuesioner Preferensi Kriteria</h1>
+        <p class="text-sm text-gray-500 px-2">Bantu sistem memahami prioritas kebutuhan mobil Anda.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 xl:gap-8">
+        
+        <div class="lg:col-span-3 order-1">
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+                <div class="bg-[#0F172A] p-4 sm:p-5 text-white">
+                    <h2 class="text-lg sm:text-xl font-bold flex items-center"><i class="fas fa-sliders-h mr-3"></i> Tentukan Prioritas Anda</h2>
+                </div>
+
+                <form action="{{ url_for('proses_ahp') }}" method="POST" class="p-4 sm:p-6 md:p-8">
+                    
+                    <div class="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg mb-6 sm:mb-8 text-xs sm:text-sm md:text-base shadow-sm leading-relaxed">
+                        <i class="fas fa-lightbulb mr-2 text-yellow-500"></i> <b>Cara Mengisi:</b> Geser titik ke arah kriteria yang paling Anda utamakan. <br class="hidden sm:inline">
+                        <i class="block mt-1 text-gray-600">Contoh: Jika Anda menggeser mentok ke arah "Harga OTR Mobil", berarti Anda <b>mutlak memprioritaskan harga murah</b> dibandingkan kriteria lawannya. Jika di tengah (angka 1), berarti keduanya sama penting.</i>
+                    </div>
+
+                    {% set kriteria = [
+                        {'nama': 'Harga OTR Mobil', 'desc': 'Prioritas: Nilai ekonomis / harga beli mobil lebih terjangkau', 'warna': 'text-emerald-600'},
+                        {'nama': 'Kapasitas Mesin (CC)', 'desc': 'Prioritas: Performa ketangguhan & besaran tenaga mesin mobil', 'warna': 'text-blue-600'},
+                        {'nama': 'Kapasitas Penumpang', 'desc': 'Prioritas: Jumlah daya tampung kursi kabin (Seat/Keluarga)', 'warna': 'text-yellow-600'},
+                        {'nama': 'Kapasitas Tangki (L)', 'desc': 'Prioritas: Efisiensi waktu pengisian / volume tangki bahan bakar besar', 'warna': 'text-purple-600'}
+                    ] %}
+                    
+                    {% set inputs = [
+                        ('c1_c2', 0, 1), ('c1_c3', 0, 2), ('c1_c4', 0, 3),
+                        ('c2_c3', 1, 2), ('c2_c4', 1, 3),
+                        ('c3_c4', 2, 3)
+                    ] %}
+
+                    <div class="space-y-8 sm:space-y-10">
+                        {% for name, i, j in inputs %}
+                        
+                        {# LOGIKA MENYIMPAN STATE SLIDER #}
+                        {% set current_val = 0 %}
+                        {% if request.form and name in request.form %}
+                            {% set current_val = request.form[name] %}
+                        {% elif saved_inputs and name in saved_inputs %}
+                            {% set current_val = saved_inputs[name] %}
+                        {% endif %}
+
+                        <div class="border border-gray-100 rounded-xl p-4 sm:p-5 md:p-6 bg-gray-50/50 relative mt-4">
+                            <div class="absolute -top-2.5 -left-2 sm:-top-3 sm:-left-3 bg-[#DC2626] text-white w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm shadow-md">
+                                {{ loop.index }}
+                            </div>
+
+                            <div class="flex flex-row items-stretch justify-between text-sm mb-5 sm:mb-6 gap-2 md:gap-4">
+                                <div class="w-[45%] bg-white p-2.5 sm:p-3 md:p-4 rounded-lg border border-gray-200 text-center shadow-sm flex flex-col justify-center">
+                                    <div class="font-bold text-xs sm:text-sm md:text-base {{ kriteria[i].warna }} leading-tight">{{ kriteria[i].nama }}</div>
+                                    <div class="text-[9px] sm:text-[10px] md:text-xs text-gray-500 mt-1 leading-tight hidden sm:block">{{ kriteria[i].desc }}</div>
+                                </div>
+                                
+                                <div class="w-[10%] flex items-center justify-center font-extrabold text-gray-300 text-xs sm:text-sm md:text-lg tracking-wider">
+                                    VS
+                                </div>
+                                
+                                <div class="w-[45%] bg-white p-2.5 sm:p-3 md:p-4 rounded-lg border border-gray-200 text-center shadow-sm flex flex-col justify-center">
+                                    <div class="font-bold text-xs sm:text-sm md:text-base {{ kriteria[j].warna }} leading-tight">{{ kriteria[j].nama }}</div>
+                                    <div class="text-[9px] sm:text-[10px] md:text-xs text-gray-500 mt-1 leading-tight hidden sm:block">{{ kriteria[j].desc }}</div>
+                                </div>
+                            </div>
+
+                            <div class="block sm:hidden text-[10px] text-gray-500 bg-white border border-gray-100 rounded-md p-2 mb-4 space-y-1">
+                                <p><span class="font-semibold {{ kriteria[i].warna }}">{{ kriteria[i].nama }}</span>: {{ kriteria[i].desc }}</p>
+                                <p><span class="font-semibold {{ kriteria[j].warna }}">{{ kriteria[j].nama }}</span>: {{ kriteria[j].desc }}</p>
+                            </div>
+                            
+                            <div class="px-1 sm:px-4 md:px-8">
+                                <input type="range" name="{{ name }}" min="-8" max="8" value="{{ current_val }}" class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-[#DC2626] shadow-inner focus:outline-none">
+                                
+                                <div class="flex justify-between text-[10px] sm:text-xs text-gray-400 mt-3 font-medium items-center px-0.5">
+                                    <span class="text-red-500 font-bold">9</span>
+                                    <span class="hidden md:inline">7</span>
+                                    <span class="hidden sm:inline">5</span>
+                                    <span class="hidden md:inline">3</span>
+                                    <span class="font-extrabold text-black text-xs sm:text-sm bg-gray-200 w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full shadow-sm">1</span>
+                                    <span class="hidden md:inline">3</span>
+                                    <span class="hidden sm:inline">5</span>
+                                    <span class="hidden md:inline">7</span>
+                                    <span class="text-red-500 font-bold">9</span>
+                                </div>
+
+                                <!-- TAMBAHAN KETERANGAN ARAH PRIORITAS UNTUK MASING-MASING PERBANDINGAN -->
+                                <div class="text-[10px] sm:text-xs text-gray-500 text-center mt-3 bg-white/80 p-1.5 rounded-md border border-gray-100">
+                                    {% if name == 'c1_c2' %}
+                                        <i class="fas fa-arrow-left mr-1 text-emerald-600"></i> Geser ke kiri = Prioritaskan <span class="font-semibold text-emerald-600">HARGA MURAH</span> 
+                                        <i class="fas fa-arrow-right ml-2 mr-1 text-blue-600"></i> Geser ke kanan = Prioritaskan <span class="font-semibold text-blue-600">MESIN BESAR</span>
+                                    {% elif name == 'c1_c3' %}
+                                        <i class="fas fa-arrow-left mr-1 text-emerald-600"></i> Geser ke kiri = Prioritaskan <span class="font-semibold text-emerald-600">HARGA MURAH</span> 
+                                        <i class="fas fa-arrow-right ml-2 mr-1 text-yellow-600"></i> Geser ke kanan = Prioritaskan <span class="font-semibold text-yellow-600">PENUMPANG BANYAK</span>
+                                    {% elif name == 'c1_c4' %}
+                                        <i class="fas fa-arrow-left mr-1 text-emerald-600"></i> Geser ke kiri = Prioritaskan <span class="font-semibold text-emerald-600">HARGA MURAH</span> 
+                                        <i class="fas fa-arrow-right ml-2 mr-1 text-purple-600"></i> Geser ke kanan = Prioritaskan <span class="font-semibold text-purple-600">TANGKI BESAR</span>
+                                    {% elif name == 'c2_c3' %}
+                                        <i class="fas fa-arrow-left mr-1 text-blue-600"></i> Geser ke kiri = Prioritaskan <span class="font-semibold text-blue-600">MESIN BESAR</span> 
+                                        <i class="fas fa-arrow-right ml-2 mr-1 text-yellow-600"></i> Geser ke kanan = Prioritaskan <span class="font-semibold text-yellow-600">PENUMPANG BANYAK</span>
+                                    {% elif name == 'c2_c4' %}
+                                        <i class="fas fa-arrow-left mr-1 text-blue-600"></i> Geser ke kiri = Prioritaskan <span class="font-semibold text-blue-600">MESIN BESAR</span> 
+                                        <i class="fas fa-arrow-right ml-2 mr-1 text-purple-600"></i> Geser ke kanan = Prioritaskan <span class="font-semibold text-purple-600">TANGKI BESAR</span>
+                                    {% elif name == 'c3_c4' %}
+                                        <i class="fas fa-arrow-left mr-1 text-yellow-600"></i> Geser ke kiri = Prioritaskan <span class="font-semibold text-yellow-600">PENUMPANG BANYAK</span> 
+                                        <i class="fas fa-arrow-right ml-2 mr-1 text-purple-600"></i> Geser ke kanan = Prioritaskan <span class="font-semibold text-purple-600">TANGKI BESAR</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-8 sm:mt-10 pt-5 sm:pt-6 border-t border-gray-200">
+                        <button type="submit" class="w-full bg-[#DC2626] hover:bg-red-700 text-white font-bold py-3.5 sm:py-4 px-6 sm:px-10 rounded-xl transition duration-300 shadow-lg text-base sm:text-lg flex items-center justify-center group tracking-wide">
+                            <i class="fas fa-search mr-3 group-hover:scale-110 transition-transform duration-300 text-sm sm:text-base"></i> CARIKAN SAYA MOBIL TERBAIK
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
-        <form action="{{ url_for('proses_ahp') }}" method="POST" class="p-8">
-            
-            <div class="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg mb-8 text-sm">
-                <i class="fas fa-info-circle mr-2"></i> <b>Petunjuk:</b> Geser slider ke arah kriteria yang menurut Anda lebih penting. Angka 1 berarti kedua kriteria sama pentingnya. Semakin besar angka, semakin mutlak kepentingannya.
-            </div>
-
-            {% set kriteria = ['Harga Mobil', 'Efisiensi BBM', 'Tenaga Mesin', 'Kapasitas Kursi', 'Fitur Keselamatan'] %}
-            {% set inputs = [
-                ('c1_c2', 0, 1), ('c1_c3', 0, 2), ('c1_c4', 0, 3), ('c1_c5', 0, 4),
-                ('c2_c3', 1, 2), ('c2_c4', 1, 3), ('c2_c5', 1, 4),
-                ('c3_c4', 2, 3), ('c3_c5', 2, 4),
-                ('c4_c5', 3, 4)
-            ] %}
-
-            <div class="space-y-8">
-                {% for name, i, j in inputs %}
-                <div class="border-b pb-6">
-                    <div class="flex justify-between text-sm font-bold text-[#0F172A] mb-4">
-                        <span class="w-1/3 text-left bg-gray-100 p-2 rounded text-center">{{ kriteria[i] }}</span>
-                        <span class="w-1/3 text-center text-gray-400">vs</span>
-                        <span class="w-1/3 text-right bg-gray-100 p-2 rounded text-center">{{ kriteria[j] }}</span>
-                    </div>
-                    
-                    <div class="flex items-center justify-between gap-4">
-                        <span class="text-xs text-gray-500 w-12 text-center">Mutlak Kiri (9)</span>
-                        <input type="range" name="{{ name }}" min="-8" max="8" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#DC2626]">
-                        <span class="text-xs text-gray-500 w-12 text-center">Mutlak Kanan (9)</span>
-                    </div>
-                    <div class="flex justify-between text-xs text-gray-400 mt-2 px-12">
-                        <span>9</span><span>7</span><span>5</span><span>3</span>
-                        <span class="font-bold text-black text-sm">1</span>
-                        <span>3</span><span>5</span><span>7</span><span>9</span>
-                    </div>
+        <div class="lg:col-span-1 order-2">
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-200 lg:sticky lg:top-24 overflow-hidden">
+                <div class="bg-gray-50 border-b border-gray-200 p-4 sm:p-5">
+                    <h3 class="font-bold text-[#0F172A] flex items-center text-sm sm:text-base"><i class="fas fa-book-open text-[#DC2626] mr-2"></i> Keterangan Angka</h3>
+                    <p class="text-[11px] sm:text-xs text-gray-500 mt-0.5">Seberapa kuat prioritas Anda?</p>
                 </div>
-                {% endfor %}
+                
+                <div class="p-4 sm:p-5">
+                    <ul class="space-y-3.5 sm:space-y-4 text-xs sm:text-sm">
+                        <li class="flex items-start">
+                            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-200 text-gray-800 font-bold flex items-center justify-center flex-shrink-0 mr-3 shadow-sm text-xs sm:text-sm">1</span>
+                            <div>
+                                <strong class="text-gray-800 block leading-tight">Sama Penting</strong>
+                                <span class="text-[11px] sm:text-xs text-gray-500 block mt-0.5">Kedua kriteria seimbang bagi Anda.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center flex-shrink-0 mr-3 shadow-sm text-xs sm:text-sm">3</span>
+                            <div>
+                                <strong class="text-gray-800 block leading-tight">Sedikit Miring</strong>
+                                <span class="text-[11px] sm:text-xs text-gray-500 block mt-0.5">Satu kriteria agak lebih penting.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-yellow-100 text-yellow-700 font-bold flex items-center justify-center flex-shrink-0 mr-3 shadow-sm text-xs sm:text-sm">5</span>
+                            <div>
+                                <strong class="text-gray-800 block leading-tight">Lebih Penting</strong>
+                                <span class="text-[11px] sm:text-xs text-gray-500 block mt-0.5">Anda jelas mengutamakan kriteria tersebut.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-orange-100 text-orange-700 font-bold flex items-center justify-center flex-shrink-0 mr-3 shadow-sm text-xs sm:text-sm">7</span>
+                            <div>
+                                <strong class="text-gray-800 block leading-tight">Sangat Penting</strong>
+                                <span class="text-[11px] sm:text-xs text-gray-500 block mt-0.5">Kriteria ini sangat kuat didahulukan.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-red-100 text-red-700 font-bold flex items-center justify-center flex-shrink-0 mr-3 shadow-sm text-xs sm:text-sm">9</span>
+                            <div>
+                                <strong class="text-gray-800 block leading-tight">Mutlak Penting</strong>
+                                <span class="text-[11px] sm:text-xs text-gray-500 block mt-0.5">Kriteria ini merupakan harga mati (prioritas mutlak).</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
+        </div>
 
-            <div class="mt-10 text-center">
-                <button type="submit" class="bg-[#DC2626] hover:bg-red-700 text-white font-bold py-4 px-10 rounded-xl transition duration-300 shadow-lg text-lg flex items-center justify-center mx-auto group">
-                    <i class="fas fa-cogs mr-3 group-hover:rotate-180 transition-transform duration-500"></i> PROSES REKOMENDASI SAW
-                </button>
-            </div>
-        </form>
     </div>
 </div>
 {% endblock %}

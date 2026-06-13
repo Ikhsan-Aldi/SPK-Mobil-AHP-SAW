@@ -15,80 +15,285 @@
                 <p class="text-sm text-gray-500">Isi spesifikasi lengkap mobil di bawah ini.</p>
             </div>
         </div>
-        
-        </div>
+    </div>
 
     <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 md:p-8">
-        <form method="POST" id="formMobil">
-            
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+        <form method="POST" id="formMobil" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-6">
                 
-                <div class="md:col-span-2">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Kode</label>
-                    <input type="text" name="kode" value="{{ mobil.kode if mobil else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] bg-gray-50 focus:bg-white transition" required placeholder="A1">
-                </div>
+                <div class="lg:col-span-8 grid grid-cols-1 md:grid-cols-12 gap-6">
+                    
+                    <div class="md:col-span-4 relative">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Merk Mobil</label>
+                        <div class="relative">
+                            <input type="text" id="input-merk" name="merk" value="{{ mobil.merk if mobil else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition pr-10" required maxlength="50" placeholder="Pilih atau ketik merk..." autocomplete="off">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                        <div id="dropdown-merk" class="hidden absolute z-30 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto custom-dropdown-list">
+                            <div class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm font-medium transition dropdown-item" data-value="Toyota">Toyota</div>
+                            <div class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm font-medium transition dropdown-item" data-value="Mitsubishi">Mitsubishi</div>
+                            <div class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm font-medium transition dropdown-item" data-value="Suzuki">Suzuki</div>
+                            <div class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm font-medium transition dropdown-item" data-value="Honda">Honda</div>
+                            <div class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm font-medium transition dropdown-item" data-value="Hyundai">Hyundai</div>
+                            <div class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm font-medium transition dropdown-item" data-value="Daihatsu">Daihatsu</div>
+                            <div class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm font-medium transition dropdown-item" data-value="Wuling">Wuling</div>
+                        </div>
+                    </div>
 
-                <div class="md:col-span-6">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Nama & Tipe Mobil</label>
-                    <input type="text" name="nama_mobil" value="{{ mobil.nama_mobil if mobil else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition" required placeholder="Contoh: Toyota Avanza 1.5 G TSS">
-                </div>
+                    <div class="md:col-span-4 relative">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Model Mobil</label>
+                        <div class="relative">
+                            <input type="text" id="input-model" name="model" value="{{ mobil.model if mobil else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition pr-10" required maxlength="50" placeholder="Pilih atau ketik model..." autocomplete="off">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                        <div id="dropdown-model" class="hidden absolute z-30 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto custom-dropdown-list">
+                            <div class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm font-medium transition dropdown-item" data-value="Avanza">Avanza</div>
+                            <div class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm font-medium transition dropdown-item" data-value="Xpander">Xpander</div>
+                            <div class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm font-medium transition dropdown-item" data-value="Ertiga">Ertiga</div>
+                            <div class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm font-medium transition dropdown-item" data-value="Xenia">Xenia</div>
+                            <div class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm font-medium transition dropdown-item" data-value="Stargazer">Stargazer</div>
+                            <div class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm font-medium transition dropdown-item" data-value="Brio">Brio</div>
+                            <div class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm font-medium transition dropdown-item" data-value="Agya">Agya</div>
+                            <div class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm font-medium transition dropdown-item" data-value="Confero">Confero</div>
+                        </div>
+                    </div>
 
-                <div class="md:col-span-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Harga OTR (Rp)</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-bold">Rp</span>
-                        <input type="number" name="harga" value="{{ mobil.harga if mobil else '' }}" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] font-semibold text-gray-800 transition" required placeholder="300000000">
+                    <div class="md:col-span-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Varian / Tipe</label>
+                        <input type="text" name="varian" value="{{ mobil.varian if mobil else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition" required maxlength="100" placeholder="Contoh: 1.5 G CVT / Ultimate">
+                    </div>
+
+
+                    <div class="md:col-span-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Transmisi</label>
+                        <select name="transmisi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] bg-white text-gray-700 cursor-pointer" required>
+                            <option value="" disabled selected>-- Pilih Transmisi --</option>
+                            <option value="MT" {% if mobil and mobil.transmisi == 'MT' %}selected{% endif %}>Manual (MT)</option>
+                            <option value="AT" {% if mobil and mobil.transmisi == 'AT' %}selected{% endif %}>Otomatis (AT)</option>
+                            <option value="CVT" {% if mobil and mobil.transmisi == 'CVT' %}selected{% endif %}>CVT</option>
+                            <option value="DCT" {% if mobil and mobil.transmisi == 'DCT' %}selected{% endif %}>Dual Clutch (DCT)</option>
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Bahan Bakar</label>
+                        <select name="bahan_bakar" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] bg-white text-gray-700 cursor-pointer" required>
+                            <option value="" disabled selected>-- Pilih Bahan Bakar --</option>
+                            <option value="Bensin" {% if mobil and mobil.bahan_bakar == 'Bensin' %}selected{% endif %}>Bensin</option>
+                            <option value="Diesel" {% if mobil and mobil.bahan_bakar == 'Diesel' %}selected{% endif %}>Diesel</option>
+                        </select>
+                    </div>
+
+
+                    <div class="md:col-span-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Harga OTR (Rp)</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-bold">Rp</span>
+                            <input type="number" name="harga" value="{{ mobil.harga if mobil else '' }}" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] font-semibold text-gray-800 transition" required min="1" max="999999999999" placeholder="300000000">
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">
+                            <i class="fas fa-tachometer-alt text-gray-400 mr-1"></i> Kapasitas Mesin (CC)
+                        </label>
+                        <input type="number" name="kapasitas_mesin" value="{{ mobil.kapasitas_mesin if mobil else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition" required min="1" max="20000" placeholder="Contoh: 1500">
+                    </div>
+
+                    <div class="md:col-span-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">
+                            <i class="fas fa-chair text-gray-400 mr-1"></i> Kapasitas Penumpang
+                        </label>
+                        <input type="number" name="kapasitas_penumpang" value="{{ mobil.kapasitas_penumpang if mobil else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition" required min="1" max="100" placeholder="Contoh: 7">
+                    </div>
+
+                    <div class="md:col-span-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">
+                            <i class="fas fa-fill-drip text-gray-400 mr-1"></i> Kapasitas Tangki (L)
+                        </label>
+                        <input type="number" name="kapasitas_tangki" value="{{ mobil.kapasitas_tangki if mobil else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition" required min="1" max="2000" placeholder="Contoh: 43">
                     </div>
                 </div>
 
-                <div class="md:col-span-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
-                        <i class="fas fa-chair text-gray-400 mr-1"></i> Kapasitas Kursi
-                    </label>
-                    <input type="number" name="kursi" value="{{ mobil.kursi if mobil else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition" required>
-                </div>
-
-                <div class="md:col-span-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
-                        <i class="fas fa-gas-pump text-gray-400 mr-1"></i> Konsumsi BBM (km/L)
-                    </label>
-                    <input type="number" step="0.1" name="bbm" value="{{ mobil.bbm if mobil else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition" required>
-                </div>
-
-                <div class="md:col-span-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
-                        <i class="fas fa-bolt text-gray-400 mr-1"></i> Tenaga Mesin (HP/PS)
-                    </label>
-                    <input type="number" name="tenaga" value="{{ mobil.tenaga if mobil else '' }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition" required>
-                </div>
-
-                <div class="md:col-span-12">
-                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-200">
-                        <label class="block text-blue-900 text-sm font-bold mb-2">
-                            <i class="fas fa-shield-alt mr-1"></i> Fitur Keselamatan (Standar ASEAN NCAP)
+                <div class="lg:col-span-4 flex flex-col justify-between border-l border-gray-100 lg:pl-6">
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-3">
+                            <i class="fas fa-image mr-1 text-gray-400"></i> Visualisasi / Foto Mobil
                         </label>
-                        <select name="fitur_safety" class="w-full px-4 py-3 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700 cursor-pointer" required>
-                            <option value="" disabled selected>-- Pilih Tingkat Keamanan --</option>
-                            <option value="1" {% if mobil and mobil.fitur_safety == 1 %}selected{% endif %}>1 - Basic Passive (Seatbelt & Rangka Saja)</option>
-                            <option value="2" {% if mobil and mobil.fitur_safety == 2 %}selected{% endif %}>2 - Standard Safety (Dual Airbags + Rem ABS)</option>
-                            <option value="3" {% if mobil and mobil.fitur_safety == 3 %}selected{% endif %}>3 - Active Safety (ABS, EBD, BA + Hill Start Assist)</option>
-                            <option value="4" {% if mobil and mobil.fitur_safety == 4 %}selected{% endif %}>4 - High Active Safety (VSC + 6 Airbags)</option>
-                            <option value="5" {% if mobil and mobil.fitur_safety == 5 %}selected{% endif %}>5 - Advanced Safety (ADAS / TSS / Honda Sensing)</option>
-                        </select>
-                        <p class="text-xs text-blue-600 mt-2 ml-1">
-                            *Pilih poin 1-5 sesuai kelengkapan fitur keselamatan mobil.
-                        </p>
+                        
+                        <div id="dropzoneContainer" class="border-2 border-dashed border-gray-300 hover:border-[#DC2626] rounded-xl p-4 flex flex-col items-center justify-center bg-gray-50 h-56 relative overflow-hidden group mb-4 cursor-pointer transition-all">
+                            
+                            <img id="imgPreview" 
+                                 src="{% if mobil and mobil.gambar %}{{ url_for('static', filename='uploads/' ~ mobil.gambar) }}{% endif %}" 
+                                 class="max-h-full max-w-full object-contain rounded-lg {% if not (mobil and mobil.gambar) %}hidden{% endif %}" 
+                                 alt="Preview Mobil">
+                            
+                            <div id="previewPlaceholder" class="text-center text-gray-400 p-4 {% if mobil and mobil.gambar %}hidden{% endif %}">
+                                <i class="fas fa-cloud-upload-alt text-5xl mb-3 text-gray-300 group-hover:text-[#DC2626] transition-colors"></i>
+                                <p class="text-xs font-semibold">Belum ada foto dipilih</p>
+                                <p class="text-[10px] text-gray-400 mt-1">Format .png, .jpg, .jpeg</p>
+                            </div>
+
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center text-white rounded-xl">
+                                <i class="fas fa-camera text-3xl mb-1"></i>
+                                <span class="text-xs font-semibold">Klik untuk Upload / Ganti Foto</span>
+                            </div>
+                        </div>
+
+                        {% if mobil and mobil.gambar %}
+                            <div class="bg-blue-50 border border-blue-200 text-[11px] text-blue-700 rounded-lg p-2.5 mb-4">
+                                <i class="fas fa-info-circle mr-1"></i> Gambar aktif saat ini: 
+                                <span class="font-mono font-bold block truncate mt-0.5">{{ mobil.gambar }}</span>
+                                <span class="text-gray-500 block mt-1">Biarkan kosong jika tidak ingin mengubah gambar utama.</span>
+                            </div>
+                        {% endif %}
+
+                        <input type="file" id="inputGambar" name="gambar" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition bg-white text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer" accept=".jpg,.jpeg,.png">
                     </div>
                 </div>
 
             </div>
 
             <div class="pt-4 border-t border-gray-100">
-                <button type="submit" class="w-full bg-[#0F172A] hover:bg-[#DC2626] text-white font-bold py-4 rounded-xl transition duration-300 shadow-lg text-lg flex justify-center items-center group">
+                <button type="submit" id="submitBtn" class="w-full bg-[#0F172A] hover:bg-[#DC2626] text-white font-bold py-4 rounded-xl transition duration-300 shadow-lg text-lg flex justify-center items-center group">
                     <i class="fas fa-save mr-2 group-hover:scale-110 transition-transform"></i> SIMPAN DATA MOBIL
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+    // ==========================================
+    // 1. LOGIKA INTERAKTIF CONTAINER PREVIEW FOTO
+    // ==========================================
+    document.getElementById('dropzoneContainer').addEventListener('click', function() {
+        document.getElementById('inputGambar').click();
+    });
+
+    document.getElementById('inputGambar').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const allowedExtensions = /(\.jpg|\.jpeg|\.png)$/i;
+            if (!allowedExtensions.exec(file.name)) {
+                alert('Format file salah! Gunakan format .png, .jpg, atau .jpeg');
+                this.value = '';
+                return false;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgPreview = document.getElementById('imgPreview');
+                const placeholder = document.getElementById('previewPlaceholder');
+                
+                imgPreview.src = e.target.result;
+                imgPreview.classList.remove('hidden');
+                
+                if (placeholder) {
+                    placeholder.classList.add('hidden');
+                }
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // ==========================================
+    // 2. LOGIKA CUSTOM DROPDOWN (MERK & MODEL)
+    // ==========================================
+    function initCustomDropdown(inputId, dropdownId) {
+        const input = document.getElementById(inputId);
+        const dropdown = document.getElementById(dropdownId);
+        const items = dropdown.querySelectorAll('.dropdown-item');
+
+        function showDropdown() {
+            closeAllDropdowns();
+            dropdown.classList.remove('hidden');
+        }
+
+        input.addEventListener('click', function(e) {
+            e.stopPropagation();
+            showDropdown();
+        });
+
+        input.addEventListener('focus', function() {
+            showDropdown();
+        });
+
+        items.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.stopPropagation();
+                input.value = this.getAttribute('data-value');
+                dropdown.classList.add('hidden');
+            });
+        });
+    }
+
+    initCustomDropdown('input-merk', 'dropdown-merk');
+    initCustomDropdown('input-model', 'dropdown-model');
+
+    document.addEventListener('click', function() {
+        closeAllDropdowns();
+    });
+
+    function closeAllDropdowns() {
+        document.querySelectorAll('.custom-dropdown-list').forEach(list => {
+            list.classList.add('hidden');
+        });
+    }
+
+    // ==========================================
+    // 3. VALIDASI SUBMIT FRONTEND (ANTI-OVERFLOW) + PREVENT DOUBLE SUBMIT
+    // ==========================================
+    const form = document.getElementById('formMobil');
+    const submitBtn = document.getElementById('submitBtn');
+    let isSubmitting = false;  // flag untuk mencegah double submit
+
+    form.addEventListener('submit', function(e) {
+        // Validasi field
+        const harga = parseFloat(document.getElementsByName('harga')[0].value);
+        const mesin = parseInt(document.getElementsByName('kapasitas_mesin')[0].value);
+        const penumpang = parseInt(document.getElementsByName('kapasitas_penumpang')[0].value);
+        const tangki = parseInt(document.getElementsByName('kapasitas_tangki')[0].value);
+
+        if (harga <= 0 || harga > 999999999999) {
+            alert('Input gagal! Batas harga maksimal adalah Rp 1 Triliun.');
+            e.preventDefault();
+            return false;
+        }
+        else if (mesin <= 0 || mesin > 20000) {
+            alert('Input gagal! Batas kapasitas mesin adalah 20.000 CC.');
+            e.preventDefault();
+            return false;
+        }
+        else if (penumpang <= 0 || penumpang > 100) {
+            alert('Input gagal! Batas kapasitas penumpang maksimal 100 orang.');
+            e.preventDefault();
+            return false;
+        }
+        else if (tangki <= 0 || tangki > 2000) {
+            alert('Input gagal! Batas kapasitas tangki maksimal 2.000 Liter.');
+            e.preventDefault();
+            return false;
+        }
+
+        // Cegah double submit
+        if (isSubmitting) {
+            e.preventDefault();
+            return false;
+        }
+
+        // Nonaktifkan tombol, ubah teks, dan set flag
+        isSubmitting = true;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> MENYIMPAN...';
+        // Jangan lupa hapus class hover background agar tetap jelas
+        submitBtn.classList.remove('hover:bg-[#DC2626]');
+        submitBtn.style.opacity = '0.7';
+    });
+</script>
 {% endblock %}

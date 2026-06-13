@@ -1,127 +1,388 @@
 {% extends "base.html" %}
 
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <div class="container mx-auto px-4 py-8 max-w-5xl font-poppins">
-    
-    <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-[#0F172A] mb-2">Hasil Rekomendasi SPK</h1>
-        <p class="text-gray-500 text-sm md:text-base">Berdasarkan perhitungan metode Hybrid AHP - SAW sesuai preferensi Anda.</p>
-    </div>
 
-    <div class="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 mb-8 flex flex-wrap justify-center items-center gap-3 text-xs md:text-sm">
-        <span class="font-bold text-gray-700 mr-2"><i class="fas fa-chart-pie mr-1"></i> Prioritas Bobot:</span>
-        <span class="bg-red-50 text-red-700 px-3 py-1 rounded-full border border-red-200">Harga: {{ (bobot.harga * 100)|round(1) }}%</span>
-        <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-200">BBM: {{ (bobot.bbm * 100)|round(1) }}%</span>
-        <span class="bg-yellow-50 text-yellow-700 px-3 py-1 rounded-full border border-yellow-200">Tenaga: {{ (bobot.tenaga * 100)|round(1) }}%</span>
-        <span class="bg-green-50 text-green-700 px-3 py-1 rounded-full border border-green-200">Kursi: {{ (bobot.kursi * 100)|round(1) }}%</span>
-        <span class="bg-purple-50 text-purple-700 px-3 py-1 rounded-full border border-purple-200">Safety: {{ (bobot.safety * 100)|round(1) }}%</span>
-    </div>
-
-    {% if ranking %}
-    <div class="bg-gradient-to-r from-[#0F172A] to-[#1e293b] rounded-xl shadow-lg p-5 md:p-6 mb-8 text-white relative overflow-hidden border-t-4 border-[#DC2626]">
-        <div class="absolute -right-4 -bottom-4 opacity-10 pointer-events-none">
-            <i class="fas fa-trophy text-8xl"></i>
-        </div>
-        
-        <div class="relative z-10 flex flex-row items-center gap-4 md:gap-6">
-            <div class="bg-[#DC2626] text-white w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl font-bold shadow-lg flex-shrink-0">
-                #1
+    <div class="bg-white p-4 md:p-5 rounded-xl shadow-md border border-gray-200 mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+        <div class="md:col-span-1 text-center md:text-left">
+            <h3 class="font-bold text-[#0F172A] text-sm md:text-base mb-0.5 flex items-center justify-center md:justify-start gap-2">
+                <i class="fas fa-chart-bar text-[#DC2626]"></i> Bobot Preferensi User
+            </h3>
+            <p class="text-[11px] text-gray-500 leading-relaxed">Nilai prioritas global hasil kalkulasi matriks perbandingan kuesioner.</p>
+            <div class="flex flex-wrap gap-1.5 mt-2.5 justify-center md:justify-start text-[10px] font-medium">
+                <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">Harga</span>
+                <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">Mesin</span>
+                <span class="px-2 py-0.5 rounded bg-yellow-50 text-yellow-700 border border-yellow-200">Penumpang</span>
+                <span class="px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">Tangki</span>
             </div>
-            
-            <div class="flex-1">
-                <p class="text-red-400 font-semibold tracking-wider uppercase text-[10px] md:text-xs mb-1">Rekomendasi Utama</p>
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                    
-                    <div>
-                        <h2 class="text-xl md:text-2xl font-bold mb-2">{{ ranking[0].nama_mobil }}</h2>
-                        <div class="flex flex-wrap gap-2 text-[10px] md:text-xs text-gray-300">
-                            <span class="bg-white/10 px-2 py-1 rounded border border-white/5"><i class="fas fa-tag text-emerald-400 mr-1"></i> Rp {{ "{:,.0f}".format(ranking[0].harga).replace(',', '.') }}</span>
-                            <span class="bg-white/10 px-2 py-1 rounded border border-white/5"><i class="fas fa-chair text-blue-400 mr-1"></i> {{ ranking[0].kursi }} Seat</span>
-                            <span class="bg-white/10 px-2 py-1 rounded border border-white/5"><i class="fas fa-gas-pump text-orange-400 mr-1"></i> {{ ranking[0].bbm }} km/L</span>
-                            <span class="bg-white/10 px-2 py-1 rounded border border-white/5"><i class="fas fa-bolt text-yellow-400 mr-1"></i> {{ ranking[0].tenaga }} HP</span>
-                            <span class="bg-white/10 px-2 py-1 rounded border border-white/5"><i class="fas fa-shield-alt text-purple-400 mr-1"></i> Safety: {{ ranking[0].fitur_safety }}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-1 md:mt-0 text-left md:text-right bg-white/10 px-4 py-2 rounded-lg border border-white/20 inline-block self-start md:self-auto min-w-[120px]">
-                        <span class="text-[10px] md:text-xs block text-gray-300">Skor Preferensi (V)</span>
-                        <span class="font-bold text-xl md:text-2xl text-yellow-400">{{ ranking[0].nilai_v }}</span>
-                    </div>
+        </div>
+        <div class="md:col-span-2 relative h-28 w-full">
+            <canvas id="ahpWeightChart"></canvas>
+        </div>
+    </div>
 
+    {# ------------------------------------------------------------- #}
+    {# FALLBACK: Filter terlalu sempit -> rekomendasi Euclidean Distance #}
+    {# ------------------------------------------------------------- #}
+    {% if empty_result and fallback is defined and fallback %}
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r-lg">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle text-yellow-500 text-xl"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-700">
+                        <strong>Filter terlalu ketat.</strong> Tidak ada mobil yang memenuhi semua filter yang Anda pilih.
+                    </p>
+                    <!-- <p class="text-sm text-yellow-600 mt-1">
+                        Berikut adalah rekomendasi mobil <strong>terdekat dengan preferensi Anda</strong> menggunakan 
+                        <strong>Weighted Euclidean Distance</strong> (Content‑Based Filtering).
+                    </p> -->
+                    <p class="text-sm text-yellow-600 mt-1">
+                        Berikut adalah rekomendasi mobil <strong>terdekat dengan preferensi Anda.
+                    </p>
+                    <p class="text-xs text-yellow-600 mt-2">
+                        <i class="fas fa-info-circle"></i> Tips: Coba filter dengan kriteria yang lebih longgar (ubah merk, transmisi, bahan bakar, atau batas harga).
+                    </p>
                 </div>
             </div>
         </div>
+
+        {# Rekomendasi Utama untuk fallback #}
+        {% if ranking and ranking[0] %}
+        <div class="bg-gradient-to-r from-[#0F172A] to-[#1e293b] rounded-xl shadow-md p-3.5 md:p-4 mb-6 text-white relative overflow-hidden border-t-4 border-[#DC2626]">
+            <div class="absolute -right-2 -bottom-2 opacity-10 pointer-events-none">
+                <i class="fas fa-trophy text-6xl md:text-7xl"></i>
+            </div>
+            <div class="relative z-10 flex items-center gap-3 md:gap-5">
+                <div class="bg-[#DC2626] text-white w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-base md:text-lg font-bold shadow-md flex-shrink-0">
+                    #1
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-red-400 font-semibold tracking-wider uppercase text-[9px] md:text-[10px] mb-0.5">Rekomendasi Terdekat</p>
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <h2 class="text-base md:text-lg lg:text-xl font-bold text-white mb-1.5 leading-tight">
+                                {{ ranking[0].merk }} {{ ranking[0].model }} {{ ranking[0].varian }}
+                            </h2>
+                            <div class="flex flex-wrap gap-1.5 text-[9px] md:text-xs text-gray-300">
+                                <span class="bg-white/10 px-2 py-0.5 rounded border border-white/5"><i class="fas fa-tag text-emerald-400 mr-1"></i> Rp {{ "{:,.0f}".format(ranking[0].harga).replace(',', '.') }}</span>
+                                <span class="bg-white/10 px-2 py-0.5 rounded border border-white/5"><i class="fas fa-cog text-blue-400 mr-1"></i> {{ ranking[0].transmisi }}</span>
+                                <span class="bg-white/10 px-2 py-0.5 rounded border border-white/5"><i class="fas fa-gas-pump text-orange-400 mr-1"></i> {{ ranking[0].bahan_bakar }}</span>
+                                <span class="bg-white/10 px-2 py-0.5 rounded border border-white/5"><i class="fas fa-bolt text-yellow-400 mr-1"></i> {{ ranking[0].kapasitas_mesin }} cc</span>
+                                <span class="bg-white/10 px-2 py-0.5 rounded border border-white/5"><i class="fas fa-chair text-purple-400 mr-1"></i> {{ ranking[0].kapasitas_penumpang }} Seat</span>
+                                <span class="bg-white/10 px-2 py-0.5 rounded border border-white/5"><i class="fas fa-fill-drip text-cyan-400 mr-1"></i> {{ ranking[0].kapasitas_tangki }} L</span>
+                            </div>
+                        </div>
+                        <div class="flex lg:flex-col items-center lg:items-end justify-between lg:justify-center bg-white/5 lg:bg-white/10 px-3 py-1.5 lg:py-2 rounded-lg border border-white/10 lg:min-w-[110px] flex-shrink-0">
+                            <span class="text-[9px] md:text-xs text-gray-400 lg:text-gray-300">Jarak Kemiripan</span>
+                            <span class="font-bold text-base md:text-lg lg:text-xl text-yellow-400 ml-2 lg:ml-0 leading-none">{{ ranking[0].jarak|round(4) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Tabel rekomendasi fallback (menampilkan jarak, bukan nilai V) #}
+        <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 md:px-6 py-3.5 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="font-bold text-gray-800 text-xs md:text-base">Detail Pemeringkatan (Weighted Euclidean Distance)</h3>
+                <span class="text-[10px] md:text-xs text-gray-400 bg-gray-200/60 px-2 py-0.5 rounded-full font-mono">Max 10 Teratas</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 text-left">
+                    <thead class="bg-gray-50/50">
+                        <tr>
+                            <th class="px-3 md:px-6 py-3 text-center text-[10px] md:text-xs font-bold text-gray-500 uppercase w-12 md:w-16">Rank</th>
+                            <th class="px-3 md:px-6 py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase">Model Mobil & Spesifikasi Lengkap</th>
+                            <th class="px-3 md:px-6 py-3 text-center text-[10px] md:text-xs font-bold text-[#DC2626] uppercase w-20 md:w-28">Jarak (E)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 bg-white">
+                        {% for m in ranking[:10] %}
+                        <tr class="hover:bg-red-50/30 transition duration-150 {% if loop.index == 1 %}bg-yellow-50/20{% endif %} {% if loop.index > 5 %}js-row-hidden hidden animate-fade-in{% endif %}">
+                            <td class="px-3 md:px-6 py-3.5 text-center whitespace-nowrap">
+                                {% if loop.index == 1 %}
+                                    <span class="bg-gradient-to-br from-yellow-300 to-yellow-500 text-yellow-900 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-bold mx-auto shadow-sm text-xs md:text-sm">1</span>
+                                {% elif loop.index == 2 %}
+                                    <span class="bg-gradient-to-br from-gray-200 to-gray-400 text-gray-800 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-bold mx-auto shadow-sm text-xs md:text-sm">2</span>
+                                {% elif loop.index == 3 %}
+                                    <span class="bg-gradient-to-br from-orange-300 to-orange-500 text-orange-900 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-bold mx-auto shadow-sm text-xs md:text-sm">3</span>
+                                {% else %}
+                                    <span class="text-gray-500 font-bold text-xs md:text-sm">{{ loop.index }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-3 md:px-6 py-3.5">
+                                <div class="font-bold text-[#0F172A] text-xs md:text-base mb-1.5 leading-tight">
+                                    {{ m.merk }} {{ m.model }} {{ m.varian }}
+                                </div>
+                                <div class="flex flex-wrap gap-1.5 max-w-3xl">
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] md:text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100 whitespace-nowrap">
+                                        <i class="fas fa-tag mr-1 text-emerald-500"></i> Rp {{ "{:,.0f}".format(m.harga).replace(',', '.') }}
+                                    </span>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] md:text-xs font-medium bg-slate-50 text-slate-700 border border-slate-100 whitespace-nowrap">
+                                        <i class="fas fa-cog mr-1 text-slate-500"></i> {{ m.transmisi }}
+                                    </span>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] md:text-xs font-medium bg-orange-50 text-orange-700 border border-orange-100 whitespace-nowrap">
+                                        <i class="fas fa-gas-pump mr-1 text-orange-500"></i> {{ m.bahan_bakar }}
+                                    </span>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] md:text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-100 whitespace-nowrap">
+                                        <i class="fas fa-bolt mr-1 text-yellow-500"></i> Mesin: {{ m.kapasitas_mesin }} cc
+                                    </span>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] md:text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100 whitespace-nowrap">
+                                        <i class="fas fa-chair mr-1 text-purple-500"></i> {{ m.kapasitas_penumpang }} Kursi
+                                    </span>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] md:text-xs font-medium bg-cyan-50 text-cyan-700 border border-cyan-100 whitespace-nowrap">
+                                        <i class="fas fa-fill-drip mr-1 text-cyan-500"></i> Tangki: {{ m.kapasitas_tangki }} L
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-3 md:px-6 py-3.5 text-center align-middle whitespace-nowrap">
+                                <span class="font-bold text-sm md:text-base {% if loop.index == 1 %}text-[#DC2626]{% else %}text-gray-800{% endif %}">
+                                    {{ m.jarak|round(4) }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if ranking|length > 5 %}
+            <div class="bg-gray-50 px-6 py-3 border-t border-gray-100 flex justify-center">
+                <button id="toggleRankBtn" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 hover:text-gray-900 rounded-lg shadow-sm font-semibold text-xs md:text-sm transition-all duration-200 focus:outline-none">
+                    <span id="toggleText">Tampilkan Lebih Lengkap (10)</span>
+                    <i id="toggleIcon" class="fas fa-chevron-down text-gray-400 transition-transform duration-200"></i>
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+    {# ------------------------------------------------------------- #}
+    {# NORMAL: HASIL FILTER TIDAK KOSONG -> TAMPILKAN SAW #}
+    {# ------------------------------------------------------------- #}
+    {% elif not empty_result %}
+        {% if ranking %}
+        <div class="bg-gradient-to-r from-[#0F172A] to-[#1e293b] rounded-xl shadow-md p-3.5 md:p-4 mb-6 text-white relative overflow-hidden border-t-4 border-[#DC2626]">
+            <div class="absolute -right-2 -bottom-2 opacity-10 pointer-events-none">
+                <i class="fas fa-trophy text-6xl md:text-7xl"></i>
+            </div>
+            <div class="relative z-10 flex items-center gap-3 md:gap-5">
+                <div class="bg-[#DC2626] text-white w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-base md:text-lg font-bold shadow-md flex-shrink-0">
+                    #1
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-red-400 font-semibold tracking-wider uppercase text-[9px] md:text-[10px] mb-0.5">Rekomendasi Utama</p>
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <h2 class="text-base md:text-lg lg:text-xl font-bold text-white mb-1.5 leading-tight">
+                                {{ ranking[0].merk }} {{ ranking[0].model }} {{ ranking[0].varian }}
+                            </h2>
+                            <div class="flex flex-wrap gap-1.5 text-[9px] md:text-xs text-gray-300">
+                                <span class="bg-white/10 px-2 py-0.5 rounded border border-white/5"><i class="fas fa-tag text-emerald-400 mr-1"></i> Rp {{ "{:,.0f}".format(ranking[0].harga).replace(',', '.') }}</span>
+                                <span class="bg-white/10 px-2 py-0.5 rounded border border-white/5"><i class="fas fa-cog text-blue-400 mr-1"></i> {{ ranking[0].transmisi }}</span>
+                                <span class="bg-white/10 px-2 py-0.5 rounded border border-white/5"><i class="fas fa-gas-pump text-orange-400 mr-1"></i> {{ ranking[0].bahan_bakar }}</span>
+                                <span class="bg-white/10 px-2 py-0.5 rounded border border-white/5"><i class="fas fa-bolt text-yellow-400 mr-1"></i> {{ ranking[0].kapasitas_mesin }} cc</span>
+                                <span class="bg-white/10 px-2 py-0.5 rounded border border-white/5"><i class="fas fa-chair text-purple-400 mr-1"></i> {{ ranking[0].kapasitas_penumpang }} Seat</span>
+                                <span class="bg-white/10 px-2 py-0.5 rounded border border-white/5"><i class="fas fa-fill-drip text-cyan-400 mr-1"></i> {{ ranking[0].kapasitas_tangki }} L</span>
+                            </div>
+                        </div>
+                        <div class="flex lg:flex-col items-center lg:items-end justify-between lg:justify-center bg-white/5 lg:bg-white/10 px-3 py-1.5 lg:py-2 rounded-lg border border-white/10 lg:min-w-[110px] flex-shrink-0">
+                            <span class="text-[9px] md:text-xs text-gray-400 lg:text-gray-300">Skor Kemiripan (V)</span>
+                            <span class="font-bold text-base md:text-lg lg:text-xl text-yellow-400 ml-2 lg:ml-0 leading-none">{{ ranking[0].nilai_v }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 md:px-6 py-3.5 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="font-bold text-gray-800 text-xs md:text-base">Detail Pemeringkatan Rekomendasi (SAW)</h3>
+                <span class="text-[10px] md:text-xs text-gray-400 bg-gray-200/60 px-2 py-0.5 rounded-full font-mono">Max 10 Teratas</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 text-left">
+                    <thead class="bg-gray-50/50">
+                        <tr>
+                            <th class="px-3 md:px-6 py-3 text-center text-[10px] md:text-xs font-bold text-gray-500 uppercase w-12 md:w-16">Rank</th>
+                            <th class="px-3 md:px-6 py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase">Model Mobil & Spesifikasi Lengkap</th>
+                            <th class="px-3 md:px-6 py-3 text-center text-[10px] md:text-xs font-bold text-[#DC2626] uppercase w-20 md:w-28">Skor (V)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 bg-white">
+                        {% for m in ranking[:10] %}
+                        <tr class="hover:bg-red-50/30 transition duration-150 {% if loop.index == 1 %}bg-yellow-50/20{% endif %} {% if loop.index > 5 %}js-row-hidden hidden animate-fade-in{% endif %}">
+                            <td class="px-3 md:px-6 py-3.5 text-center whitespace-nowrap">
+                                {% if loop.index == 1 %}
+                                    <span class="bg-gradient-to-br from-yellow-300 to-yellow-500 text-yellow-900 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-bold mx-auto shadow-sm text-xs md:text-sm">1</span>
+                                {% elif loop.index == 2 %}
+                                    <span class="bg-gradient-to-br from-gray-200 to-gray-400 text-gray-800 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-bold mx-auto shadow-sm text-xs md:text-sm">2</span>
+                                {% elif loop.index == 3 %}
+                                    <span class="bg-gradient-to-br from-orange-300 to-orange-500 text-orange-900 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-bold mx-auto shadow-sm text-xs md:text-sm">3</span>
+                                {% else %}
+                                    <span class="text-gray-500 font-bold text-xs md:text-sm">{{ loop.index }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-3 md:px-6 py-3.5">
+                                <div class="font-bold text-[#0F172A] text-xs md:text-base mb-1.5 leading-tight">
+                                    {{ m.merk }} {{ m.model }} {{ m.varian }}
+                                </div>
+                                <div class="flex flex-wrap gap-1.5 max-w-3xl">
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] md:text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100 whitespace-nowrap">
+                                        <i class="fas fa-tag mr-1 text-emerald-500"></i> Rp {{ "{:,.0f}".format(m.harga).replace(',', '.') }}
+                                    </span>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] md:text-xs font-medium bg-slate-50 text-slate-700 border border-slate-100 whitespace-nowrap">
+                                        <i class="fas fa-cog mr-1 text-slate-500"></i> {{ m.transmisi }}
+                                    </span>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] md:text-xs font-medium bg-orange-50 text-orange-700 border border-orange-100 whitespace-nowrap">
+                                        <i class="fas fa-gas-pump mr-1 text-orange-500"></i> {{ m.bahan_bakar }}
+                                    </span>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] md:text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-100 whitespace-nowrap">
+                                        <i class="fas fa-bolt mr-1 text-yellow-500"></i> Mesin: {{ m.kapasitas_mesin }} cc
+                                    </span>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] md:text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100 whitespace-nowrap">
+                                        <i class="fas fa-chair mr-1 text-purple-500"></i> {{ m.kapasitas_penumpang }} Kursi
+                                    </span>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] md:text-xs font-medium bg-cyan-50 text-cyan-700 border border-cyan-100 whitespace-nowrap">
+                                        <i class="fas fa-fill-drip mr-1 text-cyan-500"></i> Tangki: {{ m.kapasitas_tangki }} L
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-3 md:px-6 py-3.5 text-center align-middle whitespace-nowrap">
+                                <span class="font-bold text-sm md:text-base {% if loop.index == 1 %}text-[#DC2626]{% else %}text-gray-800{% endif %}">
+                                    {{ m.nilai_v }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if ranking|length > 5 %}
+            <div class="bg-gray-50 px-6 py-3 border-t border-gray-100 flex justify-center">
+                <button id="toggleRankBtn" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 hover:text-gray-900 rounded-lg shadow-sm font-semibold text-xs md:text-sm transition-all duration-200 focus:outline-none">
+                    <span id="toggleText">Tampilkan Lebih Lengkap (10)</span>
+                    <i id="toggleIcon" class="fas fa-chevron-down text-gray-400 transition-transform duration-200"></i>
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    {% else %}
+        {# Kasus empty_result true tapi fallback tidak aktif (seharusnya tidak terjadi) #}
+        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-8 text-center my-12">
+            <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">Tidak Ada Mobil yang Cocok</h2>
+            <p class="text-gray-500 max-w-md mx-auto mb-6 text-sm md:text-base">
+                Maaf, tidak ada data mobil di database yang memenuhi semua kombinasi filter yang Anda masukkan.
+            </p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="{{ url_for('input_filter') }}" class="inline-flex items-center justify-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-[#DC2626] hover:bg-red-700 transition shadow-sm">
+                    <i class="fas fa-filter mr-2"></i> Ubah Filter Mutlak
+                </a>
+                <a href="{{ url_for('input_ahp') }}" class="inline-flex items-center justify-center px-5 py-2.5 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition shadow-sm">
+                    <i class="fas fa-redo-alt mr-2"></i> Hitung Ulang Kuesioner
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    {# Tombol navigasi bawah untuk semua mode kecuali empty_result yang tidak fallback #}
+    {% if not (empty_result and fallback is not defined) %}
+    <div class="mt-8 flex flex-wrap justify-center gap-4 pb-8">
+        <a href="{{ url_for('input_filter') }}" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition">
+            <i class="fas fa-filter mr-2 text-blue-600"></i> Ubah Filter Utama
+        </a>
+        <a href="{{ url_for('input_ahp') }}" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-[#0F172A] bg-white hover:bg-gray-50 transition">
+            <i class="fas fa-redo-alt mr-2 text-[#DC2626]"></i> Hitung Ulang Kuesioner AHP
+        </a>
     </div>
     {% endif %}
 
-    <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
-            <h3 class="font-bold text-gray-800 text-sm md:text-base">Detail Pemeringkatan Lengkap</h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-white">
-                    <tr>
-                        <th class="px-4 md:px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase w-16">Rank</th>
-                        <th class="px-4 md:px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Model Mobil & Spesifikasi</th>
-                        <th class="px-4 md:px-6 py-3 text-center text-xs font-bold text-[#DC2626] uppercase w-28 md:w-32">Skor (V)</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    {% for m in ranking %}
-                    <tr class="hover:bg-red-50/50 transition duration-150 {% if loop.index == 1 %}bg-yellow-50/30{% endif %}">
-                        
-                        <td class="px-4 md:px-6 py-4 text-center">
-                            {% if loop.index == 1 %}
-                                <span class="bg-gradient-to-br from-yellow-300 to-yellow-500 text-yellow-900 w-8 h-8 rounded-full flex items-center justify-center font-bold mx-auto shadow-sm">1</span>
-                            {% elif loop.index == 2 %}
-                                <span class="bg-gradient-to-br from-gray-200 to-gray-400 text-gray-800 w-8 h-8 rounded-full flex items-center justify-center font-bold mx-auto shadow-sm">2</span>
-                            {% elif loop.index == 3 %}
-                                <span class="bg-gradient-to-br from-orange-300 to-orange-500 text-orange-900 w-8 h-8 rounded-full flex items-center justify-center font-bold mx-auto shadow-sm">3</span>
-                            {% else %}
-                                <span class="text-gray-500 font-bold">{{ loop.index }}</span>
-                            {% endif %}
-                        </td>
-                        
-                        <td class="px-4 md:px-6 py-4">
-                            <div class="font-bold text-[#0F172A] text-sm md:text-base mb-1">{{ m.nama_mobil }}</div>
-                            
-                            <div class="flex flex-wrap gap-2 mt-1">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                    <i class="fas fa-tag mr-1"></i> Rp {{ "{:,.0f}".format(m.harga).replace(',', '.') }}
-                                </span>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                                    <i class="fas fa-chair mr-1"></i> {{ m.kursi }} Seat
-                                </span>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200">
-                                    <i class="fas fa-gas-pump mr-1"></i> {{ m.bbm }} km/L
-                                </span>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
-                                    <i class="fas fa-bolt mr-1"></i> {{ m.tenaga }} HP
-                                </span>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
-                                    <i class="fas fa-shield-alt mr-1"></i> Safety: {{ m.fitur_safety }}
-                                </span>
-                            </div>
-                        </td>
-                        
-                        <td class="px-4 md:px-6 py-4 text-center align-middle">
-                            <span class="font-bold text-base md:text-lg {% if loop.index == 1 %}text-[#DC2626]{% else %}text-gray-800{% endif %}">
-                                {{ m.nilai_v }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <div class="mt-8 text-center pb-8">
-        <a href="{{ url_for('input_ahp') }}" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-[#0F172A] bg-white hover:bg-gray-50 transition">
-            <i class="fas fa-redo-alt mr-2 text-[#DC2626]"></i> Hitung Ulang Preferensi
-        </a>
-    </div>
-
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. Grafik Chart.js
+        const ctx = document.getElementById('ahpWeightChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Harga (Cost)', 'Kapasitas Mesin', 'Kapasitas Penumpang', 'Kapasitas Tangki'],
+                    datasets: [{
+                        label: 'Bobot Efektif (%)',
+                        data: [
+                            {{ (bobot.harga * 100)|round(1) }},
+                            {{ (bobot.kapasitas_mesin * 100)|round(1) }},
+                            {{ (bobot.kapasitas_penumpang * 100)|round(1) }},
+                            {{ (bobot.kapasitas_tangki * 100)|round(1) }}
+                        ],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.25)',
+                            'rgba(59, 130, 246, 0.25)',
+                            'rgba(245, 158, 11, 0.25)',
+                            'rgba(139, 92, 246, 0.25)'
+                        ],
+                        borderColor: ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6'],
+                        borderWidth: 1.5,
+                        borderRadius: 4,
+                        barThickness: 16
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (ctx) => ` Bobot: ${ctx.raw}%` } }
+                    },
+                    scales: {
+                        x: { beginAtZero: true, max: 100, ticks: { callback: (v) => v + '%', font: { size: 10 } }, grid: { color: 'rgba(241, 245, 249, 1)' } },
+                        y: { ticks: { font: { size: 11, weight: 'bold' }, color: '#334155' }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // 2. Toggle tabel (hanya jika ada tombol)
+        const toggleBtn = document.getElementById('toggleRankBtn');
+        if (toggleBtn) {
+            const hiddenRows = document.querySelectorAll('.js-row-hidden');
+            const toggleText = document.getElementById('toggleText');
+            const toggleIcon = document.getElementById('toggleIcon');
+
+            toggleBtn.addEventListener('click', function() {
+                const areHidden = hiddenRows[0].classList.contains('hidden');
+                hiddenRows.forEach(row => {
+                    if (areHidden) row.classList.remove('hidden');
+                    else row.classList.add('hidden');
+                });
+                if (areHidden) {
+                    toggleText.textContent = 'Sembunyikan';
+                    toggleIcon.classList.add('rotate-180');
+                } else {
+                    toggleText.textContent = 'Tampilkan Lebih Lengkap (10)';
+                    toggleIcon.classList.remove('rotate-180');
+                }
+            });
+        }
+    });
+</script>
+
+<style>
+    .animate-fade-in {
+        animation: fadeIn 0.25s ease-out forwards;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-2px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
 {% endblock %}

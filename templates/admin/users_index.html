@@ -3,6 +3,7 @@
 {% block content %}
 <div class="relative w-full">
 
+    <!-- Toast Notifications -->
     <div class="absolute top-0 right-0 z-50 flex flex-col gap-3 w-80 max-w-full pointer-events-none" id="toastContainer">
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
@@ -28,104 +29,75 @@
     </div>
 
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 class="text-2xl font-bold text-gray-800">Manajemen Data Mobil</h1>
+        <h1 class="text-2xl font-bold text-gray-800">Manajemen Data User</h1>
         
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             <div class="relative w-full sm:w-64">
                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <i class="fas fa-search text-gray-400"></i>
                 </span>
-                <input type="text" id="searchInput" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A] focus:border-transparent text-sm shadow-sm" placeholder="Cari merk, model, tipe...">
+                <input type="text" id="searchInput" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A] focus:border-transparent text-sm shadow-sm" placeholder="Cari username, nama, role...">
             </div>
             
-            <a href="{{ url_for('admin_mobil_tambah') }}" class="w-full sm:w-auto text-center bg-[#0F172A] hover:bg-[#DC2626] text-white px-4 py-2 rounded-lg transition shadow-md whitespace-nowrap">
-                <i class="fas fa-plus mr-2"></i> Tambah Data
+            <a href="{{ url_for('admin_users_tambah') }}" class="w-full sm:w-auto text-center bg-[#0F172A] hover:bg-[#DC2626] text-white px-4 py-2 rounded-lg transition shadow-md whitespace-nowrap">
+                <i class="fas fa-plus mr-2"></i> Tambah User
             </a>
         </div>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200" id="adminCarTable">
+            <table class="min-w-full divide-y divide-gray-200" id="adminUserTable">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Nama Mobil & Spesifikasi</th>
-                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase w-44">Harga</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Username</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Nama Lengkap</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Role</th>
                         <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase w-32">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200" id="carTableBody">
-                    {% for m in mobil %}
-                    <tr class="car-row hover:bg-gray-50 transition duration-150" data-search="{{ m.merk|lower }} {{ m.model|lower }} {{ m.varian|lower }} {{ m.transmisi|lower }} {{ m.bahan_bakar|lower }}">
-                        
+                <tbody class="bg-white divide-y divide-gray-200" id="userTableBody">
+                    {% for user in users %}
+                    <tr class="user-row hover:bg-gray-50 transition duration-150" data-search="{{ user.username|lower }} {{ user.nama_lengkap|lower }} {{ user.role|lower }}">
+                        <td class="px-6 py-4 text-sm text-gray-700 align-middle font-medium">
+                            {{ user.username }}
+                        </td>
                         <td class="px-6 py-4 text-sm text-gray-700 align-middle">
-                            <div class="flex items-center space-x-4">
-                                
-                                <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0 flex items-center justify-center shadow-sm">
-                                    {% if m.gambar %}
-                                        <img src="{{ url_for('static', filename='uploads/' ~ m.gambar) }}" alt="{{ m.model }}" class="w-full h-full object-cover">
-                                    {% else %}
-                                        <i class="fas fa-car text-gray-400 text-lg"></i>
-                                    {% endif %}
-                                </div>
-                                
-                                <div class="flex-1 min-w-0">
-                                    <div class="font-bold text-[#0F172A]">
-                                        {{ m.merk }} {{ m.model }} <span class="text-xs font-normal text-gray-500">({{ m.varian }})</span>
-                                    </div>
-                                    
-                                    <div class="text-xs text-gray-500 mt-1.5 flex flex-wrap gap-1.5">
-                                        <span class="bg-gray-100 px-2 py-0.5 rounded border border-gray-200 flex items-center">
-                                            <i class="fas fa-cog text-gray-400 mr-1 text-[10px]"></i> {{ m.transmisi }}
-                                        </span>
-                                        
-                                        <span class="bg-gray-100 px-2 py-0.5 rounded border border-gray-200 flex items-center">
-                                            <i class="fas fa-gas-pump text-gray-400 mr-1 text-[10px]"></i> {{ m.bahan_bakar }}
-                                        </span>
-                                        
-                                        <span class="bg-gray-100 px-2 py-0.5 rounded border border-gray-200 flex items-center">
-                                            <i class="fas fa-tachometer-alt text-gray-400 mr-1 text-[10px]"></i> {{ m.kapasitas_mesin }} CC
-                                        </span>
-
-                                        <span class="bg-gray-100 px-2 py-0.5 rounded border border-gray-200 flex items-center">
-                                            <i class="fas fa-chair text-gray-400 mr-1 text-[10px]"></i> {{ m.kapasitas_penumpang }} Seat
-                                        </span>
-
-                                        <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200 font-semibold flex items-center">
-                                            <i class="fas fa-fill-drip mr-1 text-[10px]"></i> {{ m.kapasitas_tangki }} L
-                                        </span>
-                                    </div>
-                                </div>
-
-                            </div>
+                            {{ user.nama_lengkap }}
                         </td>
-                        
-                        <td class="px-6 py-4 text-sm text-gray-700 font-semibold align-middle whitespace-nowrap">
-                            Rp {{ "{:,.0f}".format(m.harga).replace(',', '.') }}
+                        <td class="px-6 py-4 text-sm align-middle">
+                            {% if user.role == 'superadmin' %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    <i class="fas fa-crown mr-1 text-xs"></i> Super Admin
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <i class="fas fa-user-shield mr-1 text-xs"></i> Admin
+                                </span>
+                            {% endif %}
                         </td>
-                        
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium align-middle">
-                            <a href="{{ url_for('admin_mobil_edit', id=m.id_mobil) }}" class="inline-block bg-blue-100 text-blue-600 hover:bg-blue-200 hover:text-blue-900 p-2 rounded-lg mr-1 transition" title="Edit">
+                            <a href="{{ url_for('admin_users_edit', id=user.id_user) }}" class="inline-block bg-blue-100 text-blue-600 hover:bg-blue-200 hover:text-blue-900 p-2 rounded-lg mr-1 transition" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <button type="button" data-url="{{ url_for('admin_mobil_hapus', id=m.id_mobil) }}" class="delete-btn-trigger inline-block bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-900 p-2 rounded-lg transition" title="Hapus">
+                            <button type="button" data-id="{{ user.id_user }}" data-username="{{ user.username }}" class="delete-btn-trigger inline-block bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-900 p-2 rounded-lg transition" title="Hapus">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="3" class="px-6 py-10 text-center text-gray-500">
+                        <td colspan="4" class="px-6 py-10 text-center text-gray-500">
                             <i class="fas fa-folder-open text-3xl mb-2 block text-gray-300"></i>
-                            Tidak ada data mobil yang tersedia.
+                            Tidak ada data user yang tersedia.
                         </td>
                     </tr>
                     {% endfor %}
                     
                     <tr id="noResultsRow" class="hidden">
-                        <td colspan="3" class="px-6 py-10 text-center text-gray-500">
+                        <td colspan="4" class="px-6 py-10 text-center text-gray-500">
                             <i class="fas fa-search text-3xl mb-2 block text-gray-300"></i>
-                            Data mobil yang Anda cari tidak ditemukan.
+                            Data user yang Anda cari tidak ditemukan.
                         </td>
                     </tr>
                 </tbody>
@@ -134,13 +106,14 @@
 
         <div class="bg-gray-50 px-6 py-3 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div class="text-sm text-gray-500">
-                Menampilkan <span id="displayedCount" class="font-bold text-gray-800">0</span> dari <span id="totalCount" class="font-bold text-gray-700">0</span> data mobil
+                Menampilkan <span id="displayedCount" class="font-bold text-gray-800">0</span> dari <span id="totalCount" class="font-bold text-gray-700">0</span> data user
             </div>
             <div id="paginationContainer" class="flex space-x-1"></div>
         </div>
     </div>
 </div>
 
+<!-- Modal Konfirmasi Hapus (dengan form POST) -->
 <div id="deleteConfirmationModal" class="fixed inset-0 z-[999] hidden flex items-center justify-center p-4">
     <div class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity" id="modalBackdrop"></div>
     
@@ -152,14 +125,16 @@
                 </div>
                 <div class="flex-1">
                     <h3 class="text-lg font-bold text-gray-900">Konfirmasi Hapus</h3>
-                    <p class="text-sm text-gray-500 mt-2">Apakah Anda yakin ingin menghapus data mobil ini? Tindakan ini akan menghapus data permanen dan tidak dapat dibatalkan.</p>
+                    <p class="text-sm text-gray-500 mt-2">Apakah Anda yakin ingin menghapus user <span id="deleteUsername" class="font-semibold"></span>? Tindakan ini akan menghapus data permanen dan tidak dapat dibatalkan.</p>
                 </div>
             </div>
         </div>
         <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row-reverse gap-2">
-            <a id="confirmDeleteBtn" href="#" class="w-full sm:w-auto text-center inline-flex justify-center rounded-lg shadow-sm px-4 py-2 bg-red-600 text-sm font-semibold text-white hover:bg-red-700 transition">
-                Ya, Hapus Data
-            </a>
+            <form id="deleteForm" method="POST" action="">
+                <button type="submit" class="w-full sm:w-auto inline-flex justify-center rounded-lg shadow-sm px-4 py-2 bg-red-600 text-sm font-semibold text-white hover:bg-red-700 transition">
+                    Ya, Hapus User
+                </button>
+            </form>
             <button id="cancelDeleteBtn" type="button" class="w-full sm:w-auto inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
                 Batal
             </button>
@@ -168,35 +143,40 @@
 </div>
 
 <script>
-    // Fungsi untuk menghilangkan toast saat diklik secara instant
+    // Fungsi untuk menghilangkan toast saat diklik
     function dismissToast(element) {
         element.classList.add('opacity-0', 'translate-y-2');
         setTimeout(() => { element.remove(); }, 300);
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        // --- PROSES OTO-DISMISS TOAST NOTIFICATION ---
+        // Auto-dismiss toast setelah 5 detik
         const toasts = document.querySelectorAll('.toast-item');
         toasts.forEach(toast => {
             setTimeout(() => {
                 if (toast) dismissToast(toast);
-            }, 5000); // Otomatis hilang dalam 5 detik jika tidak diklik
+            }, 5000);
         });
 
-        // --- MANAJEMEN CUSTOM MODAL HAPUS ---
+        // --- MODAL HAPUS DENGAN FORM POST ---
         const deleteModal = document.getElementById('deleteConfirmationModal');
         const modalBox = document.getElementById('modalBox');
-        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
         const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
         const modalBackdrop = document.getElementById('modalBackdrop');
+        const deleteForm = document.getElementById('deleteForm');
+        const deleteUsernameSpan = document.getElementById('deleteUsername');
+        
         const deleteTriggers = document.querySelectorAll('.delete-btn-trigger');
-
+        
         deleteTriggers.forEach(trigger => {
             trigger.addEventListener('click', function() {
-                const targetUrl = this.getAttribute('data-url');
-                confirmDeleteBtn.setAttribute('href', targetUrl);
+                const userId = this.getAttribute('data-id');
+                const username = this.getAttribute('data-username');
+                // Set action form ke route hapus
+                deleteForm.action = "{{ url_for('admin_users_hapus', id=0) }}".replace('0', userId);
+                deleteUsernameSpan.textContent = username;
                 
-                // Tampilkan modal dengan efek transisi halus
+                // Tampilkan modal dengan efek
                 deleteModal.classList.remove('hidden');
                 setTimeout(() => {
                     modalBox.classList.remove('scale-95', 'opacity-0');
@@ -204,7 +184,7 @@
                 }, 10);
             });
         });
-
+        
         function closeModal() {
             modalBox.classList.remove('scale-100', 'opacity-100');
             modalBox.classList.add('scale-95', 'opacity-0');
@@ -212,61 +192,66 @@
                 deleteModal.classList.add('hidden');
             }, 200);
         }
-
+        
         cancelDeleteBtn.addEventListener('click', closeModal);
         modalBackdrop.addEventListener('click', closeModal);
-
-
-        // --- LOGIKA FILTER PENCARIAN & PAGINATION EXISTING ---
+        
+        // Optional: jika submit form, modal akan tertutup (tapi redirect sudah terjadi)
+        
+        // --- LOGIKA FILTER PENCARIAN & PAGINATION ---
         const searchInput = document.getElementById('searchInput');
-        const carRows = Array.from(document.querySelectorAll('.car-row'));
+        const userRows = Array.from(document.querySelectorAll('.user-row'));
         const noResultsRow = document.getElementById('noResultsRow');
         const displayedCount = document.getElementById('displayedCount');
         const totalCount = document.getElementById('totalCount');
         const paginationContainer = document.getElementById('paginationContainer');
-
+        
         let currentPage = 1;
         const rowsPerPage = 10;
-
+        
         function updateTable() {
             const filterValue = searchInput.value.toLowerCase().trim();
             
-            const filteredRows = carRows.filter(row => {
+            const filteredRows = userRows.filter(row => {
                 const searchData = row.getAttribute('data-search');
                 return searchData.includes(filterValue);
             });
-
+            
             const totalFiltered = filteredRows.length;
             const totalPages = Math.ceil(totalFiltered / rowsPerPage) || 1;
-
+            
             if (currentPage > totalPages) {
                 currentPage = totalPages;
             }
-
-            carRows.forEach(row => row.classList.add('hidden'));
-
+            
+            // Sembunyikan semua row
+            userRows.forEach(row => row.classList.add('hidden'));
+            
             const startIdx = (currentPage - 1) * rowsPerPage;
             const endIdx = startIdx + rowsPerPage;
             const pageRows = filteredRows.slice(startIdx, endIdx);
-
+            
             pageRows.forEach(row => row.classList.remove('hidden'));
-
+            
             if (totalFiltered === 0) {
                 noResultsRow.classList.remove('hidden');
             } else {
                 noResultsRow.classList.add('hidden');
             }
-
+            
             displayedCount.textContent = pageRows.length;
             totalCount.textContent = totalFiltered;
-
+            
             renderPagination(totalPages);
         }
-
+        
         function renderPagination(totalPages) {
             paginationContainer.innerHTML = '';
-            if (carRows.length === 0) return;
-
+            if (userRows.length === 0 && totalPages === 1) {
+                // Jika tidak ada data, tetap tampilkan kosong
+                return;
+            }
+            
             const prevBtn = document.createElement('button');
             prevBtn.textContent = 'Previous';
             if (currentPage === 1) {
@@ -280,7 +265,7 @@
                 });
             }
             paginationContainer.appendChild(prevBtn);
-
+            
             for (let i = 1; i <= totalPages; i++) {
                 const pageBtn = document.createElement('button');
                 pageBtn.textContent = i;
@@ -295,7 +280,7 @@
                 }
                 paginationContainer.appendChild(pageBtn);
             }
-
+            
             const nextBtn = document.createElement('button');
             nextBtn.textContent = 'Next';
             if (currentPage === totalPages) {
@@ -310,12 +295,13 @@
             }
             paginationContainer.appendChild(nextBtn);
         }
-
+        
         searchInput.addEventListener('input', function() {
             currentPage = 1;
             updateTable();
         });
-
+        
+        // Inisialisasi
         updateTable();
     });
 </script>
