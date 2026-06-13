@@ -36,21 +36,21 @@ def allowed_file(filename):
 
 # --- KONEKSI DATABASE ---
 def get_db_connection():
-    # Coba ambil URL database dari environment variable Railway
-    database_url = os.environ.get('DATABASE_URL')
+    # Coba ambil URL database dari environment variable (Railway)
+    database_url = os.environ.get('DATABASE_URL') or os.environ.get('MYSQL_URL')
     
     if database_url:
-        # Parse URL yang diberikan Railway (contoh: mysql://user:pass@host:port/dbname)
+        from urllib.parse import urlparse
         url = urlparse(database_url)
         connection = mysql.connector.connect(
             host=url.hostname,
             user=url.username,
             password=url.password,
-            database=url.path[1:],  # Hapus karakter '/' pertama di path
+            database=url.path[1:],  # hapus leading '/'
             port=url.port or 3306
         )
     else:
-        # Kembali ke konfigurasi lokal (seperti yang sudah kamu pakai)
+        # Konfigurasi lokal (XAMPP)
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
