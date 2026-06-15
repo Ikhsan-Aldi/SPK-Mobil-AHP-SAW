@@ -423,7 +423,6 @@ def login():
             session['nama'] = user['nama_lengkap']
             session['role'] = user['role']
             
-            flash('Login berhasil! Selamat datang kembali.', 'success')
             return redirect(url_for('admin_dashboard'))
         else:
             flash('Username atau Password salah!', 'danger')
