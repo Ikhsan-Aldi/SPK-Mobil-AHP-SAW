@@ -225,7 +225,6 @@ def proses_ahp():
         return redirect(url_for('hasil_saw'))
 
 @app.route('/hasil-rekomendasi')
-@app.route('/hasil-rekomendasi')
 def hasil_saw():
     # Proteksi berlapis session data
     if 'filter_preferences' not in session:
@@ -244,100 +243,151 @@ def hasil_saw():
     semua_mobil = cursor.fetchall()
     conn.close()
 
-    # --- PROSES ELEMINASI/FILTER DATA SEBELUM PERHITUNGAN SAW ---
-    mobil_lolos_filter = []
-    for m in semua_mobil:
-        # A. Filter Berdasarkan Merk
-        if pref['merk'] != 'Semua' and m['merk'] != pref['merk']:
-            continue
+    # -------------------------------------------------------------------------
+    # FUNGSI BANTU: MENERAPKAN FILTER DENGAN TINGKAT PELONGGARAN TERTENTU
+    # level 0 = semua filter (original)
+    # level 1 = abaikan merk
+    # level 2 = abaikan merk + transmisi
+    # level 3 = abaikan merk + transmisi + bahan bakar
+    # level 4 = hanya filter harga (abaikan merk, transmisi, bahan bakar)
+    # level 5 = tanpa filter apapun (semua mobil)
+    # -------------------------------------------------------------------------
+    def apply_filter_by_level(mobil_list, pref, level):
+        hasil = []
+        for m in mobil_list:
+            # Filter harga: hanya diterapkan jika level < 5
+            if level < 5 and not (pref['harga_min'] <= m['harga'] <= pref['harga_max']):
+                continue
             
-        # B. Filter Berdasarkan Jenis Bahan Bakar
-        if pref['bahan_bakar'] != 'Semua' and m['bahan_bakar'] != pref['bahan_bakar']:
-            continue
-            
-        # C. Filter Berdasarkan Kompleksitas Transmisi (Otomatis mencakup AT, CVT, DCT)
-        if pref['transmisi'] != 'Semua':
-            if pref['transmisi'] == 'Otomatis':
-                if m['transmisi'] not in ['AT', 'CVT', 'DCT']:
-                    continue
-            elif pref['transmisi'] == 'Manual':
-                if m['transmisi'] != 'MT':
-                    continue
-                    
-        # D. Filter Berdasarkan Jangkauan Nilai Harga OTR
-        if not (pref['harga_min'] <= m['harga'] <= pref['harga_max']):
-            continue
-            
-        # Jika lolos seluruh seleksi filter, masukkan ke list komputasi SAW
-        mobil_lolos_filter.append(m)
-
-    # --- JIKA FILTER MENGHASILKAN 0 MOBIL, GUNAKAN WEIGHTED EUCLIDEAN DISTANCE (FALLBACK) ---
-    if not mobil_lolos_filter:
-        # Cari nilai max/min global untuk normalisasi (dari semua mobil)
-        min_harga_global = min(m['harga'] for m in semua_mobil) if semua_mobil else 0
-        max_mesin_global = max(m['kapasitas_mesin'] for m in semua_mobil) if semua_mobil else 1
-        max_penumpang_global = max(m['kapasitas_penumpang'] for m in semua_mobil) if semua_mobil else 1
-        max_tangki_global = max(m['kapasitas_tangki'] for m in semua_mobil) if semua_mobil else 1
-        
-        # Vektor preferensi ideal: semua nilai normalisasi = 1 (harga semurah mungkin, benefit maksimal)
-        ideal = [1, 1, 1, 1]
-        w = [bobot['harga'], bobot['kapasitas_mesin'], bobot['kapasitas_penumpang'], bobot['kapasitas_tangki']]
-        
-        def weighted_euclidean_distance(mobil):
-            # Normalisasi COST: harga (semakin kecil r_harga semakin besar? kita balik agar ideal=1)
-            # Rumus: r_harga = min_harga_global / harga, kemudian batasi maksimal 1
-            if mobil['harga'] > 0:
-                r_harga = min_harga_global / mobil['harga']
+            if level >= 1:
+                # abaikan filter merk
+                pass
             else:
-                r_harga = 0
-            r_harga = min(1.0, r_harga)
+                if pref['merk'] != 'Semua' and m['merk'] != pref['merk']:
+                    continue
             
-            # Normalisasi BENEFIT: nilai / max
-            r_mesin = mobil['kapasitas_mesin'] / max_mesin_global if max_mesin_global > 0 else 0
-            r_penumpang = mobil['kapasitas_penumpang'] / max_penumpang_global if max_penumpang_global > 0 else 0
-            r_tangki = mobil['kapasitas_tangki'] / max_tangki_global if max_tangki_global > 0 else 0
+            if level >= 2:
+                # abaikan filter transmisi
+                pass
+            else:
+                if pref['transmisi'] != 'Semua':
+                    if pref['transmisi'] == 'Otomatis':
+                        if m['transmisi'] not in ['AT', 'CVT', 'DCT']:
+                            continue
+                    elif pref['transmisi'] == 'Manual':
+                        if m['transmisi'] != 'MT':
+                            continue
             
-            vektor_mobil = [r_harga, r_mesin, r_penumpang, r_tangki]
+            if level >= 3:
+                # abaikan filter bahan bakar
+                pass
+            else:
+                if pref['bahan_bakar'] != 'Semua' and m['bahan_bakar'] != pref['bahan_bakar']:
+                    continue
             
-            # Hitung jarak euclidean berbobot
-            jarak = 0
-            for i in range(4):
-                jarak += w[i] * ((ideal[i] - vektor_mobil[i]) ** 2)
-            return jarak ** 0.5
+            hasil.append(m)
         
-        # Hitung jarak untuk setiap mobil dan urutkan
-        for m in semua_mobil:
-            m['jarak'] = weighted_euclidean_distance(m)
+        return hasil
+
+    # -------------------------------------------------------------------------
+    # FUNGSI BANTU: MENGHITUNG SAW PADA SUATU HIMPUNAN MOBIL
+    # -------------------------------------------------------------------------
+    def hitung_saw(daftar_mobil):
+        if not daftar_mobil:
+            return []
         
-        hasil_ranking = sorted(semua_mobil, key=lambda x: x['jarak'])
-        hasil_ranking = hasil_ranking[:20]  # batasi 20 teratas
+        min_harga = min(m['harga'] for m in daftar_mobil)
+        max_mesin = max(m['kapasitas_mesin'] for m in daftar_mobil)
+        max_penumpang = max(m['kapasitas_penumpang'] for m in daftar_mobil)
+        max_tangki = max(m['kapasitas_tangki'] for m in daftar_mobil)
         
-        # Tampilkan dengan fallback = True
-        return render_template('hasil_saw.html', ranking=hasil_ranking, bobot=bobot, empty_result=True, fallback=True)
+        # Hindari pembagian dengan nol
+        max_mesin = max_mesin if max_mesin > 0 else 1
+        max_penumpang = max_penumpang if max_penumpang > 0 else 1
+        max_tangki = max_tangki if max_tangki > 0 else 1
+        
+        hasil = []
+        for m in daftar_mobil:
+            # Normalisasi cost (harga)
+            r_harga = min_harga / m['harga'] if m['harga'] > 0 else 0
+            # Normalisasi benefit
+            r_mesin = m['kapasitas_mesin'] / max_mesin
+            r_penumpang = m['kapasitas_penumpang'] / max_penumpang
+            r_tangki = m['kapasitas_tangki'] / max_tangki
+            
+            # Nilai preferensi V (SAW)
+            v_nilai = (r_harga * bobot['harga']) + \
+                      (r_mesin * bobot['kapasitas_mesin']) + \
+                      (r_penumpang * bobot['kapasitas_penumpang']) + \
+                      (r_tangki * bobot['kapasitas_tangki'])
+            
+            m_copy = m.copy()
+            m_copy['nilai_v'] = round(v_nilai, 4)
+            hasil.append(m_copy)
+        
+        hasil.sort(key=lambda x: x['nilai_v'], reverse=True)
+        return hasil
+
+    # -------------------------------------------------------------------------
+    # PROSES UTAMA: COBA FILTER BERTINGKAT
+    # -------------------------------------------------------------------------
+    # Pertama coba level 0 (semua filter)
+    mobil_lolos = apply_filter_by_level(semua_mobil, pref, level=0)
+    fallback_level = 0
+    used_fallback = False
     
-    # --- JIKA ADA HASIL FILTER, PROSES SAW NORMAL ---
-    min_harga = min(m['harga'] for m in mobil_lolos_filter)
-    max_mesin = max(m['kapasitas_mesin'] for m in mobil_lolos_filter)
-    max_penumpang = max(m['kapasitas_penumpang'] for m in mobil_lolos_filter)
-    max_tangki = max(m['kapasitas_tangki'] for m in mobil_lolos_filter)
-
-    hasil_ranking = []
-    for m in mobil_lolos_filter:
-        r_harga = min_harga / m['harga'] if m['harga'] > 0 else 0
-        r_mesin = m['kapasitas_mesin'] / max_mesin if max_mesin > 0 else 0
-        r_penumpang = m['kapasitas_penumpang'] / max_penumpang if max_penumpang > 0 else 0
-        r_tangki = m['kapasitas_tangki'] / max_tangki if max_tangki > 0 else 0
-
-        v_nilai = (r_harga * bobot['harga']) + \
-                  (r_mesin * bobot['kapasitas_mesin']) + \
-                  (r_penumpang * bobot['kapasitas_penumpang']) + \
-                  (r_tangki * bobot['kapasitas_tangki'])
-        
-        m['nilai_v'] = round(v_nilai, 4)
-        hasil_ranking.append(m)
-
-    hasil_ranking = sorted(hasil_ranking, key=lambda x: x['nilai_v'], reverse=True)
-    return render_template('hasil_saw.html', ranking=hasil_ranking, bobot=bobot, empty_result=False, fallback=False)
+    # Jika tidak ada, coba level 1 sampai 5
+    if not mobil_lolos:
+        used_fallback = True
+        for level in range(1, 6):
+            mobil_lolos = apply_filter_by_level(semua_mobil, pref, level)
+            if mobil_lolos:
+                fallback_level = level
+                break
+    
+    # Jika setelah level 5 tetap tidak ada (seharusnya ada karena level 5 tanpa filter)
+    if not mobil_lolos:
+        mobil_lolos = semua_mobil
+        fallback_level = 5
+        used_fallback = True
+    
+    # Hitung SAW pada himpunan mobil yang berhasil dikumpulkan
+    hasil_ranking = hitung_saw(mobil_lolos)
+    
+    # Batasi maksimal 20 rekomendasi untuk tampilan
+    hasil_ranking = hasil_ranking[:20]
+    
+    # -------------------------------------------------------------------------
+    # TENTUKAN FILTER YANG DIABAIKAN BERDASARKAN FALLBACK_LEVEL
+    # -------------------------------------------------------------------------
+    ignored_list = []
+    if used_fallback and fallback_level >= 1:
+        ignored_list.append("Merk")
+    if used_fallback and fallback_level >= 2:
+        ignored_list.append("Transmisi")
+    if used_fallback and fallback_level >= 3:
+        ignored_list.append("Bahan Bakar")
+    if used_fallback and fallback_level == 5:
+        ignored_list.append("Harga")
+    
+    # Buat string deskripsi filter yang diabaikan
+    if ignored_list:
+        if len(ignored_list) == 1:
+            ignored_filters_str = ignored_list[0]
+        else:
+            ignored_filters_str = ", ".join(ignored_list[:-1]) + " dan " + ignored_list[-1]
+    else:
+        ignored_filters_str = ""
+    
+    # Kirim ke template
+    return render_template('hasil_saw.html', 
+                           ranking=hasil_ranking, 
+                           bobot=bobot, 
+                           empty_result=used_fallback,   # fallback terjadi, tampilkan pesan peringatan
+                           fallback=used_fallback,
+                           fallback_level=fallback_level,
+                           ignored_filters=ignored_filters_str,
+                           original_pref=pref)  # kirim preferensi asli untuk info filter yang diminta
 
 # ==========================================
 # --- ROUTE AUTHENTICATION (LOGIN/LOGOUT) ---
@@ -911,9 +961,9 @@ def admin_mobil_hapus(id):
     return redirect(url_for('admin_mobil'))
 
 
-# if __name__ == '__main__':
-#     app.run(debug=True)
 if __name__ == '__main__':
-    # Mengambil port otomatis dari Railway, jika tidak ada (di lokal) pakai port 5000
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(debug=True)
+# if __name__ == '__main__':
+#     # Mengambil port otomatis dari Railway, jika tidak ada (di lokal) pakai port 5000
+#     port = int(os.environ.get("PORT", 5000))
+#     app.run(host='0.0.0.0', port=port)
