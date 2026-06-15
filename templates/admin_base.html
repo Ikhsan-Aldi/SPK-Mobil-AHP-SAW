@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - SPK MPV</title>
+    <title>Admin Panel - SPK Mobil Pribadi</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -18,7 +19,7 @@
         <aside class="w-64 bg-[#0F172A] text-white flex-shrink-0 hidden md:flex flex-col">
             <div class="p-6 border-b border-gray-700 flex items-center gap-3">
                 <i class="fas fa-shield-alt text-2xl text-[#DC2626]"></i>
-                <span class="text-xl font-bold">Admin SPK</span>
+                <span class="text-xl font-bold">Admin Panel</span>
             </div>
             
             <nav class="flex-1 px-4 py-6 space-y-2">
@@ -34,7 +35,7 @@
 
                 {% if session.get('role') == 'superadmin' %}
                 <a href="{{ url_for('admin_users') }}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-[#DC2626] hover:text-white rounded-lg transition">
-                    <i class="fas fa-users w-6"></i> Data Users
+                    <i class="fas fa-users w-6"></i> Data Admin
                 </a>
                 {% endif %}
                 

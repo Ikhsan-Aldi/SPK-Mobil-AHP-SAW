@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPK - Pemilihan Mobil MPV</title>
+    <title>SPK - Mobil Pribadi</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -16,9 +17,10 @@
     <nav class="bg-[#0F172A] text-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-4 py-3">
             <div class="flex justify-between items-center">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-car text-xl"></i>
-                    <h1 class="text-xl font-bold">SPK Mobil</h1>
+                <div class="flex items-center">
+                    <a href="{{ url_for('home') }}" class="text-xl font-bold hover:text-[#DC2626] transition">
+                        SPK Mobil Pribadi
+                    </a>
                 </div>
                 
                 <div class="hidden md:flex space-x-6">
@@ -69,15 +71,14 @@
                 if (isHidden) {
                     mobileMenu.classList.remove('hidden');
                     menuIcon.classList.remove('fa-bars');
-                    menuIcon.classList.add('fa-times'); // Ubah jadi icon silang (X) saat terbuka
+                    menuIcon.classList.add('fa-times');
                 } else {
                     mobileMenu.classList.add('hidden');
                     menuIcon.classList.remove('fa-times');
-                    menuIcon.classList.add('fa-bars'); // Kembalikan ke icon hamburger
+                    menuIcon.classList.add('fa-bars');
                 }
             });
 
-            // Antisipasi jika user iseng resize layar dari HP ke desktop, menu mobile langsung nutup otomatis
             window.addEventListener('resize', function() {
                 if (window.innerWidth >= 768) {
                     mobileMenu.classList.add('hidden');

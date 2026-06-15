@@ -1,6 +1,6 @@
 import os
 import uuid  
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory
 import mysql.connector
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -19,6 +19,15 @@ def generate_csrf_token():
 def verify_csrf_token(token):
     """Verifikasi apakah token cocok dengan session"""
     return token and token == session.get('csrf_token')
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(
+        os.path.join(app.root_path, 'static'),
+        'favicon.png',                          
+        mimetype='image/png'                    
+    )
+
 # ==========================================
 # --- KONFIGURASI UPLOAD GAMBAR ---
 # ==========================================
@@ -961,9 +970,9 @@ def admin_mobil_hapus(id):
     return redirect(url_for('admin_mobil'))
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
 # if __name__ == '__main__':
-#     # Mengambil port otomatis dari Railway, jika tidak ada (di lokal) pakai port 5000
-#     port = int(os.environ.get("PORT", 5000))
-#     app.run(host='0.0.0.0', port=port)
+#     app.run(debug=True)
+if __name__ == '__main__':
+    # Mengambil port otomatis dari Railway, jika tidak ada (di lokal) pakai port 5000
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)

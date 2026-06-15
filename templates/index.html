@@ -42,12 +42,16 @@
                     </a>
 
                     {% if has_session %}
-                        <div class="flex flex-row gap-3 w-full sm:w-auto">
-                            <a href="{{ url_for('hasil_saw') }}" class="flex-1 sm:flex-none px-4 py-3.5 bg-transparent border-2 border-white/30 text-white hover:bg-white/10 rounded-lg font-bold transition flex items-center justify-center backdrop-blur-sm text-center text-sm sm:text-base" title="Lihat hasil rekomendasi terakhir Anda">
-                                <i class="fas fa-chart-bar mr-1.5 sm:mr-2"></i> LIHAT HASIL
+                        <!-- Split button: dua tombol menyatu seperti satu blok -->
+                        <div class="flex w-full sm:w-auto rounded-lg overflow-hidden border-2 border-white/30 backdrop-blur-sm shadow-lg shadow-red-900/50">
+                            <a href="{{ url_for('hasil_saw') }}" 
+                               class="flex-1 px-3 py-3 sm:px-4 sm:py-3.5 bg-transparent hover:bg-white/10 text-white font-bold transition flex items-center justify-center text-center text-[11px] sm:text-sm md:text-base whitespace-nowrap">
+                                <i class="fas fa-chart-bar mr-1 sm:mr-2"></i> LIHAT HASIL
                             </a>
-                            <a href="{{ url_for('input_filter') }}" class="flex-1 sm:flex-none px-4 py-3.5 bg-transparent border-2 border-white/30 text-white hover:bg-white/10 rounded-lg font-bold transition flex items-center justify-center backdrop-blur-sm text-center text-sm sm:text-base" title="Ubah data filter dan kuesioner preferensi">
-                                <i class="fas fa-redo-alt mr-1.5 sm:mr-2"></i> ULANG
+                            <div class="w-px bg-white/30 my-2"></div>
+                            <a href="{{ url_for('input_filter') }}" 
+                               class="flex-1 px-3 py-3 sm:px-4 sm:py-3.5 bg-transparent hover:bg-white/10 text-white font-bold transition flex items-center justify-center text-center text-[11px] sm:text-sm md:text-base whitespace-nowrap">
+                                <i class="fas fa-redo-alt mr-1 sm:mr-2"></i> HITUNG ULANG
                             </a>
                         </div>
                     {% else %}
