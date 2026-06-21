@@ -135,6 +135,7 @@ def input_filter():
             'harga_min': harga_min,
             'harga_max': harga_max
         }
+        session.permanent = True
         
         # Alihkan langkah berikutnya menuju pengisian Kuesioner AHP
         return redirect(url_for('input_ahp'))
@@ -230,6 +231,7 @@ def proses_ahp():
             'kapasitas_penumpang': bobot_prioritas[2],
             'kapasitas_tangki': bobot_prioritas[3]
         }
+        session.permanent = True
 
         return redirect(url_for('hasil_saw'))
 
