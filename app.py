@@ -169,18 +169,18 @@ def input_ahp():
     return render_template('ahp_input.html', saved_inputs=saved_inputs)
 
 @app.route('/proses-ahp', methods=['POST'])
+@app.route('/proses-ahp', methods=['POST'])
 def proses_ahp():
     def konversi_skala(val):
         val = int(val)
         if val < 0:
-            return float(abs(val) + 1)  # Geser ke Kiri (Kriteria pertama dominan)
+            return float(abs(val) + 1)  # Geser ke Kiri
         elif val > 0:
-            return float(1 / (val + 1)) # Geser ke Kanan (Kriteria kedua dominan)
+            return float(1 / (val + 1)) # Geser ke Kanan
         else:
-            return 1.0                  # Tengah-tengah (Sama penting)
+            return 1.0                  # Tengah-tengah
 
     if request.method == 'POST':
-        # --- REVISI: SIMPAN STATE RAW INPUT SLIDER KE SESSION ---
         session['ahp_inputs'] = {
             'c1_c2': request.form.get('c1_c2', '0'),
             'c1_c3': request.form.get('c1_c3', '0'),
@@ -190,7 +190,6 @@ def proses_ahp():
             'c3_c4': request.form.get('c3_c4', '0')
         }
 
-        # Menangkap 6 parameter berpasangan dari form input (Matriks n = 4)
         try:
             k_values = {
                 'c1_c2': konversi_skala(request.form['c1_c2']),
@@ -204,7 +203,6 @@ def proses_ahp():
             flash('Mohon lengkapi seluruh baris kuesioner kriteria!', 'danger')
             return redirect(url_for('input_ahp'))
 
-        # Menyusun struktur matriks perbandingan berpasangan AHP
         matriks = [
             [1.0, k_values['c1_c2'], k_values['c1_c3'], k_values['c1_c4']],
             [1/k_values['c1_c2'], 1.0, k_values['c2_c3'], k_values['c2_c4']],
@@ -224,7 +222,30 @@ def proses_ahp():
                 jumlah_normalisasi_baris += nilai_normal
             bobot_prioritas.append(round(jumlah_normalisasi_baris / 4, 4))
 
-        # Simpan nilai bobot hasil perhitungan AHP ke dalam session
+        # ═════════════════════════════════════════════════════════════════════
+        # 🚨 REVISI UTAMA: PROSES VALIDASI KONSISTENSI (CR) AHP
+        # ═════════════════════════════════════════════════════════════════════
+        
+        # 1. Menghitung Nilai Lambda Maksimum (λ max) berdasarkan Jumlah Kolom * Bobot Prioritas
+        lambda_max = sum(jumlah_kolom[i] * bobot_prioritas[i] for i in range(4))
+        
+        # 2. Menghitung Consistency Index (CI) dengan rumus: (λ max - n) / (n - 1) di mana n = 4
+        ci = (lambda_max - 4) / (4 - 1)
+        
+        # 3. Menentukan Nilai Random Index (RI) untuk matriks berukuran 4x4 adalah 0.90
+        ri = 0.90
+        
+        # 4. Menghitung Consistency Ratio (CR)
+        cr = ci / ri if ri > 0 else 0
+
+        # 5. Cek Ambang Batas Konsistensi (Jika CR > 0.1, maka TOLAK input user)
+        if cr > 0.1:
+            flash(f'Gagal memproses kriteria! Tingkat inkonsistensi penilaian Anda terlalu tinggi (CR = {round(cr, 4)} > 0.1). Silakan isi kembali kuesioner dengan logis!', 'danger')
+            return redirect(url_for('input_ahp'))
+            
+        # ═════════════════════════════════════════════════════════════════════
+
+        # Jika lolos validasi CR <= 0.1, baru data disimpan ke session
         session['bobot_ahp'] = {
             'harga': bobot_prioritas[0],
             'kapasitas_mesin': bobot_prioritas[1],
