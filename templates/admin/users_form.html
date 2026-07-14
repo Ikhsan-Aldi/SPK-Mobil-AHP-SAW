@@ -10,10 +10,10 @@
             </a>
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">
-                    {% if user %} Edit Data User {% else %} Tambah User Baru {% endif %}
+                    {% if user %} Edit Data Admin {% else %} Tambah Admin Baru {% endif %}
                 </h1>
                 <p class="text-sm text-gray-500">
-                    {% if user %} Ubah informasi user di bawah ini. {% else %} Isi data lengkap user baru. {% endif %}
+                    {% if user %} Ubah informasi admin di bawah ini. {% else %} Isi data lengkap user baru. {% endif %}
                 </p>
             </div>
         </div>
@@ -96,7 +96,7 @@
             <div class="pt-6 mt-4 border-t border-gray-100">
                 <button type="submit" id="submitBtn" class="w-full bg-[#0F172A] hover:bg-[#DC2626] text-white font-bold py-4 rounded-xl transition duration-300 shadow-lg text-lg flex justify-center items-center group">
                     <i class="fas fa-save mr-2 group-hover:scale-110 transition-transform"></i> 
-                    {% if user %} SIMPAN PERUBAHAN {% else %} TAMBAH USER {% endif %}
+                    {% if user %} SIMPAN PERUBAHAN {% else %} Simpan {% endif %}
                 </button>
             </div>
         </form>

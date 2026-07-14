@@ -169,7 +169,6 @@ def input_ahp():
     return render_template('ahp_input.html', saved_inputs=saved_inputs)
 
 @app.route('/proses-ahp', methods=['POST'])
-@app.route('/proses-ahp', methods=['POST'])
 def proses_ahp():
     def konversi_skala(val):
         val = int(val)
