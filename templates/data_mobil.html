@@ -55,13 +55,6 @@
                         </td>
                         <td class="px-6 py-4 align-middle">
                             <div class="flex items-center space-x-4">
-                                <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0 flex items-center justify-center shadow-sm">
-                                    {% if m.gambar %}
-                                        <img src="{{ url_for('static', filename='uploads/' ~ m.gambar) }}" alt="{{ m.model }}" class="w-full h-full object-cover">
-                                    {% else %}
-                                        <i class="fas fa-car text-gray-400 text-lg"></i>
-                                    {% endif %}
-                                </div>
                                 
                                 <div>
                                     <div class="font-bold text-[#0F172A] text-base">

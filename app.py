@@ -36,7 +36,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Membuat folder static/uploads secara otomatis jika belum ada
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Fungsi helper untuk validasi format file gambar
 def allowed_file(filename):
@@ -45,7 +45,7 @@ def allowed_file(filename):
 
 # --- KONEKSI DATABASE ---
 def get_db_connection():
-    # Coba ambil URL database dari environment variable (Railway)
+    # Coba ambil URL database dari environment variable (Vercel / TiDB)
     database_url = os.environ.get('DATABASE_URL') or os.environ.get('MYSQL_URL')
     
     if database_url:
@@ -55,7 +55,7 @@ def get_db_connection():
             host=url.hostname,
             user=url.username,
             password=url.password,
-            database=url.path[1:],  # hapus leading '/'
+            database=url.path[1:],
             port=url.port or 3306
         )
     else:
@@ -208,10 +208,8 @@ def proses_ahp():
             [1/k_values['c1_c3'], 1/k_values['c2_c3'], 1.0, k_values['c3_c4']],
             [1/k_values['c1_c4'], 1/k_values['c2_c4'], 1/k_values['c3_c4'], 1.0]
         ]
-
         # Hitung jumlah total nilai per kolom matriks
         jumlah_kolom = [sum(matriks[baris][kolom] for baris in range(4)) for kolom in range(4)]
-
         # Proses normalisasi matriks dan dapatkan nilai bobot prioritas kriteria (Eigenvector)
         bobot_prioritas = []
         for baris in range(4):
@@ -220,30 +218,19 @@ def proses_ahp():
                 nilai_normal = matriks[baris][kolom] / jumlah_kolom[kolom]
                 jumlah_normalisasi_baris += nilai_normal
             bobot_prioritas.append(round(jumlah_normalisasi_baris / 4, 4))
-
-        # ═════════════════════════════════════════════════════════════════════
-        # 🚨 REVISI UTAMA: PROSES VALIDASI KONSISTENSI (CR) AHP
-        # ═════════════════════════════════════════════════════════════════════
-        
+        #PROSES VALIDASI KONSISTENSI (CR) AHP
         # 1. Menghitung Nilai Lambda Maksimum (λ max) berdasarkan Jumlah Kolom * Bobot Prioritas
         lambda_max = sum(jumlah_kolom[i] * bobot_prioritas[i] for i in range(4))
-        
         # 2. Menghitung Consistency Index (CI) dengan rumus: (λ max - n) / (n - 1) di mana n = 4
         ci = (lambda_max - 4) / (4 - 1)
-        
         # 3. Menentukan Nilai Random Index (RI) untuk matriks berukuran 4x4 adalah 0.90
         ri = 0.90
-        
         # 4. Menghitung Consistency Ratio (CR)
         cr = ci / ri if ri > 0 else 0
-
         # 5. Cek Ambang Batas Konsistensi (Jika CR > 0.1, maka TOLAK input user)
         if cr > 0.1:
             flash(f'Gagal memproses kriteria! Tingkat inkonsistensi penilaian Anda terlalu tinggi (CR = {round(cr, 4)} > 0.1). Silakan isi kembali kuesioner dengan logis!', 'danger')
             return redirect(url_for('input_ahp'))
-            
-        # ═════════════════════════════════════════════════════════════════════
-
         # Jika lolos validasi CR <= 0.1, baru data disimpan ke session
         session['bobot_ahp'] = {
             'harga': bobot_prioritas[0],
@@ -727,8 +714,7 @@ def admin_mobil():
     
     return render_template('admin/mobil_index.html', mobil=mobil)
 
-# 2. CREATE: Tambah Data Baru dengan Fitur Upload File fisik
-@app.route('/admin/mobil/tambah', methods=['GET', 'POST'])
+# 2. CREATE: Tambah Data Baru
 @app.route('/admin/mobil/tambah', methods=['GET', 'POST'])
 def admin_mobil_tambah():
     if 'loggedin' not in session:
@@ -805,19 +791,8 @@ def admin_mobil_tambah():
             flash(f"Gagal simpan! {str(e)}", 'danger')
             return render_template('admin/mobil_form.html', mobil=form_fallback)
 
-        # Proses Upload Gambar
+        # Nilai gambar dikosongkan karena fitur upload ditiadakan untuk Vercel
         gambar = ''
-        if 'gambar' in request.files:
-            file = request.files['gambar']
-            if file and file.filename != '':
-                if allowed_file(file.filename):
-                    ext = file.filename.rsplit('.', 1)[1].lower()
-                    filename = f"{uuid.uuid4().hex}.{ext}"
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                    gambar = filename
-                else:
-                    flash('Format gambar salah! Gunakan format .png, .jpg, atau .jpeg', 'danger')
-                    return render_template('admin/mobil_form.html', mobil=form_fallback)
 
         # Jika lolos validasi, masukkan nilai yang sudah bersih & aman ke DB
         conn = get_db_connection()
@@ -838,7 +813,7 @@ def admin_mobil_tambah():
     return render_template('admin/mobil_form.html', mobil=None, csrf_token=session['csrf_token'])
 
 
-# 3. UPDATE: Edit Data dengan Otomatis Hapus Gambar Lama dari Server jika diganti
+# 3. UPDATE: Edit Data 
 @app.route('/admin/mobil/edit/<int:id>', methods=['GET', 'POST'])
 def admin_mobil_edit(id):
     if 'loggedin' not in session:
@@ -930,25 +905,6 @@ def admin_mobil_edit(id):
         # Secara default, pakai nama file gambar yang sudah ada di database
         gambar = data['gambar'] if data else ''
 
-        # Jika admin mengunggah file baru, gantikan gambar lama
-        if 'gambar' in request.files:
-            file = request.files['gambar']
-            if file and file.filename != '':
-                if allowed_file(file.filename):
-                    if data and data['gambar']:
-                        old_path = os.path.join(app.config['UPLOAD_FOLDER'], data['gambar'])
-                        if os.path.exists(old_path):
-                            os.remove(old_path)
-
-                    ext = file.filename.rsplit('.', 1)[1].lower()
-                    filename = f"{uuid.uuid4().hex}.{ext}"
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                    gambar = filename
-                else:
-                    conn.close()
-                    flash('Format gambar salah! Gunakan format .png, .jpg, atau .jpeg', 'danger')
-                    return render_template('admin/mobil_form.html', mobil=form_fallback, csrf_token=session['csrf_token'])
-
         cursor.execute("""
             UPDATE tb_mobil 
             SET merk=%s, model=%s, varian=%s, transmisi=%s, bahan_bakar=%s, gambar=%s, harga=%s, kapasitas_mesin=%s, kapasitas_penumpang=%s, kapasitas_tangki=%s
@@ -965,29 +921,20 @@ def admin_mobil_edit(id):
     generate_csrf_token()
     return render_template('admin/mobil_form.html', mobil=data, csrf_token=session['csrf_token'])
 
-# 4. DELETE: Hapus Data Sekaligus File Gambar Fisiknya
+# 4. DELETE: Hapus Data
 @app.route('/admin/mobil/hapus/<int:id>')
 def admin_mobil_hapus(id):
     if 'loggedin' not in session: return redirect(url_for('login'))
     
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
-    # Dapatkan nama file gambar lama sebelum baris data di-delete
-    cursor.execute("SELECT gambar FROM tb_mobil WHERE id_mobil = %s", (id,))
-    data = cursor.fetchone()
-    
-    # Hapus file gambar secara fisik dari server jika file tersebut ada
-    if data and data['gambar']:
-        old_path = os.path.join(app.config['UPLOAD_FOLDER'], data['gambar'])
-        if os.path.exists(old_path):
-            os.remove(old_path)
-            
+    # Langsung hapus data dari database (tanpa menghapus file fisik gambar karena Vercel read-only)
     cursor.execute("DELETE FROM tb_mobil WHERE id_mobil = %s", (id,))
     conn.commit()
     conn.close()
     
-    flash('Data mobil dan file gambar berhasil dihapus!', 'danger')
+    flash('Data mobil berhasil dihapus!', 'danger')
     return redirect(url_for('admin_mobil'))
 
 

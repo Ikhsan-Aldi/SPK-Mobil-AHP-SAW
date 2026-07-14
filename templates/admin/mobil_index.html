@@ -49,6 +49,7 @@
             <table class="min-w-full divide-y divide-gray-200" id="adminCarTable">
                 <thead class="bg-gray-50">
                     <tr>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase w-12">No</th>
                         <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Nama Mobil & Spesifikasi</th>
                         <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase w-44">Harga</th>
                         <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase w-32">Aksi</th>
@@ -57,18 +58,10 @@
                 <tbody class="bg-white divide-y divide-gray-200" id="carTableBody">
                     {% for m in mobil %}
                     <tr class="car-row hover:bg-gray-50 transition duration-150" data-search="{{ m.merk|lower }} {{ m.model|lower }} {{ m.varian|lower }} {{ m.transmisi|lower }} {{ m.bahan_bakar|lower }}">
+                        <td class="no-column px-4 py-4 text-sm text-gray-500 text-center align-middle"></td>
                         
                         <td class="px-6 py-4 text-sm text-gray-700 align-middle">
                             <div class="flex items-center space-x-4">
-                                
-                                <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0 flex items-center justify-center shadow-sm">
-                                    {% if m.gambar %}
-                                        <img src="{{ url_for('static', filename='uploads/' ~ m.gambar) }}" alt="{{ m.model }}" class="w-full h-full object-cover">
-                                    {% else %}
-                                        <i class="fas fa-car text-gray-400 text-lg"></i>
-                                    {% endif %}
-                                </div>
-                                
                                 <div class="flex-1 min-w-0">
                                     <div class="font-bold text-[#0F172A]">
                                         {{ m.merk }} {{ m.model }} <span class="text-xs font-normal text-gray-500">({{ m.varian }})</span>
@@ -96,7 +89,6 @@
                                         </span>
                                     </div>
                                 </div>
-
                             </div>
                         </td>
                         
@@ -115,7 +107,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="3" class="px-6 py-10 text-center text-gray-500">
+                        <td colspan="4" class="px-6 py-10 text-center text-gray-500">
                             <i class="fas fa-folder-open text-3xl mb-2 block text-gray-300"></i>
                             Tidak ada data mobil yang tersedia.
                         </td>
@@ -123,7 +115,7 @@
                     {% endfor %}
                     
                     <tr id="noResultsRow" class="hidden">
-                        <td colspan="3" class="px-6 py-10 text-center text-gray-500">
+                        <td colspan="4" class="px-6 py-10 text-center text-gray-500">
                             <i class="fas fa-search text-3xl mb-2 block text-gray-300"></i>
                             Data mobil yang Anda cari tidak ditemukan.
                         </td>
@@ -180,7 +172,7 @@
         toasts.forEach(toast => {
             setTimeout(() => {
                 if (toast) dismissToast(toast);
-            }, 5000); // Otomatis hilang dalam 5 detik jika tidak diklik
+            }, 5000);
         });
 
         // --- MANAJEMEN CUSTOM MODAL HAPUS ---
@@ -196,7 +188,6 @@
                 const targetUrl = this.getAttribute('data-url');
                 confirmDeleteBtn.setAttribute('href', targetUrl);
                 
-                // Tampilkan modal dengan efek transisi halus
                 deleteModal.classList.remove('hidden');
                 setTimeout(() => {
                     modalBox.classList.remove('scale-95', 'opacity-0');
@@ -216,8 +207,7 @@
         cancelDeleteBtn.addEventListener('click', closeModal);
         modalBackdrop.addEventListener('click', closeModal);
 
-
-        // --- LOGIKA FILTER PENCARIAN & PAGINATION EXISTING ---
+        // --- LOGIKA FILTER PENCARIAN & PAGINATION ---
         const searchInput = document.getElementById('searchInput');
         const carRows = Array.from(document.querySelectorAll('.car-row'));
         const noResultsRow = document.getElementById('noResultsRow');
@@ -250,6 +240,14 @@
             const pageRows = filteredRows.slice(startIdx, endIdx);
 
             pageRows.forEach(row => row.classList.remove('hidden'));
+
+            // --- UPDATE NOMOR URUT (per halaman) ---
+            pageRows.forEach((row, index) => {
+                const noCell = row.querySelector('.no-column');
+                if (noCell) {
+                    noCell.textContent = index + 1;  // nomor 1-10 per halaman
+                }
+            });
 
             if (totalFiltered === 0) {
                 noResultsRow.classList.remove('hidden');
